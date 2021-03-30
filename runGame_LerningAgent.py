@@ -9,7 +9,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import gym
 
 """Game parameters"""
-gameType = ChefsHatEnv.GAMETYPE["NUMGAMES"]
+gameType = ChefsHatEnv.GAMETYPE["MATCHES"]
 gameStopCriteria = 100
 
 """Player Parameters"""
@@ -25,7 +25,7 @@ for r in playersAgents:
     rewards.append(r.getReward)
 
 """Experiment parameters"""
-saveDirectory = "/home/pablo/Documents/Datasets/ChefsHatGym/ChefsHatGYM"
+saveDirectory = "examples/"
 verbose = False
 saveLog = False
 saveDataset = False
