@@ -17,94 +17,34 @@ import random
 
 class AgentAIRL(IAgent.IAgent):
 
-    name=""
-    actor = None
-    numMaxCards = 0
-    numCardsPerPlayer = 0
-    trainingEpoches = 0
-    decayFactor = 0.99
-    eps = 0.25
-    actionsTaken = []
+    name="AIRL"
 
-    trainingStep = 0
-    targetUpdateFrequency = 50
+    def __init__(self, name, training, demonstrations=None, initialEpsilon=1, loadNetwork="", saveModelIn=""):
+        self.training = training
+        self.initialEpsilon = initialEpsilon
+        self.name += name
+        self.loadNetwork = loadNetwork
+        self.saveModelIn = saveModelIn
 
-    outputSize = 0
+        self.demonstrations = demonstrations
 
-    training = False
-
-    lastModel = ""
-
-    currentCorrectAction = 0
-
-    totalCorrectAction = []
-
-    totalAction = []
-    totalActionPerGame = 0
-
-    losses = []
-
-    SelectedActions = []
-
-    intrinsic = None
-
-    demonstrations = None
-
-    selfReward = []
-    currentReward = []
-    meanReward = []
-
-    def __init__(self, params=[]):
-        self.training = params[0]
-        self.initialEpsilon = params[1]
-
-        if len(params) > 2:
-            agentName = "_"+params[2]
-        else:
-            agentName = ""
-
-        if len(params) > 3:
-            self.intrinsic = params[3]
-        else:
-            self.intrinsic = None
-
-        if len(params) > 4:
-            self.demonstrations = params[4]
-        else:
-            self.demonstrations = None
-
-        self.name = "DQL"+agentName
-
-        self.totalAction = []
-        self.totalActionPerGame = 0
-
-        self.currentCorrectAction = 0
-
-        self.totalCorrectAction = []
-        losses = []
-        self.selfReward = []
-        self.currentReward = []
-        self.meanReward = []
+        self.startAgent()
 
 
 
-    def startAgent(self, params=[]):
-        numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = params
+
+
+    def startAgent(self):
+        numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = 11, 28, 200, "", []
 
         self.numMaxCards = numMaxCards
         self.numCardsPerPlayer = numCardsPerPlayer
         self.outputSize = actionNumber  # all the possible ways to play cards plus the pass action
 
-        if len(agentParams) > 1:
-
-            self.hiddenLayers, self.hiddenUnits, self.batchSize,  self.tau = agentParams
-
-        else:
-
-            self.hiddenLayers = 1
-            self.hiddenUnits = 256
-            self.batchSize = 128
-            self.tau = 0.52  # target network update rate
+        self.hiddenLayers = 1
+        self.hiddenUnits = 256
+        self.batchSize = 128
+        self.tau = 0.52  # target network update rate
 
         self.gamma = 0.95  # discount rate
         self.loss = "mse"
@@ -133,14 +73,16 @@ class AgentAIRL(IAgent.IAgent):
         else:
             self.loadModel(loadModel)
 
-        self.losses = []
+    def getReward(self, info):
 
-        self.QValues = []
+        state = numpy.concatenate((info["obsBefore"][0:11], info["obsBefore"][11:28]))
 
-        self.SelectedActions = []
+        rewardShape = numpy.concatenate([state,info["action"]])
+        rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
+        reward = self.rewardNetwork.predict([rewardShape])[0][0]
 
-        self.MeanQValuesPerGame = []
-        self.currentGameQValues = []
+
+        return reward
 
 
     def buildModel(self):
@@ -154,11 +96,6 @@ class AgentAIRL(IAgent.IAgent):
           self.targetNetwork.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
 
           self.rewardNetwork.compile(loss="binary_crossentropy", optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
-
-          # self.getOptmizer()
-          # self.rewardNetworkcompile(loss='binary_crossentropy',
-          #         optimizer=Adam(lr=self.learning_rate),
-          #         metrics=['accuracy'])
 
           space = Input(shape=(28,))
           possibleAction = Input(shape=(200,))
@@ -174,8 +111,6 @@ class AgentAIRL(IAgent.IAgent):
 
           self.combined.compile(loss='binary_crossentropy', optimizer=Adam(lr=self.learning_rate))
           self.combinedDemonstrator.compile(loss='binary_crossentropy', optimizer=Adam(lr=self.learning_rate))
-          #
-          # self.successNetwork.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
 
     def buildSimpleModel(self):
 
@@ -235,7 +170,6 @@ class AgentAIRL(IAgent.IAgent):
         self.targetNetwork =  modelQValue()
         self.rewardNetwork = modelReward()
 
-        self.loadQValueReader()
 
     def getOptmizer(self):
 
@@ -274,20 +208,12 @@ class AgentAIRL(IAgent.IAgent):
         self.updateReward = K.function([state, nextState, actionProb, state_d, nextState_d, actionProb_d], loss,
                                        updates=updatesReward)
 
+    def getAction(self, observations):
 
 
-    def loadQValueReader(self):
-        softmaxLayer = self.actor.get_layer(index=-2)
-        self.QValueReader = Model(self.actor.inputs, softmaxLayer.output)
+        state = numpy.concatenate((observations[0:11], observations[11:28]))
+        possibleActionsOriginal = observations[28:]
 
-
-
-    def observeOponentAction(self, params):
-        self.intrinsic.observeOponentAction(params, self.actor)
-
-    def getAction(self, params):
-
-        state, possibleActionsOriginal, rewards = params
         stateVector = numpy.expand_dims(numpy.array(state), 0)
 
         possibleActions2 = copy.copy(possibleActionsOriginal)
@@ -296,36 +222,17 @@ class AgentAIRL(IAgent.IAgent):
             itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
             random.shuffle(itemindex)
             aIndex = itemindex[0]
-            a = numpy.zeros(self.outputSize)
+            a = numpy.zeros(200)
             a[aIndex] = 1
 
         else:
 
-            # if numpy.sum(possibleActions2) > 1:
-            #     possibleActions2[199] = 0
-
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
             a = self.actor.predict([stateVector, possibleActionsVector])[0]
-            aIndex = numpy.argmax(a)
 
 
-            # if not self.intrinsic == None:
-            #     self.intrinsic.doSelfAction(a, params)
 
-            #Update QValues
-            self.QValues.append(a)
-            self.currentGameQValues.append(numpy.sum(a))
 
-            if possibleActionsOriginal[aIndex] == 1:
-                self.currentCorrectAction = self.currentCorrectAction + 1
-
-        rewardShape = numpy.concatenate([state,a])
-        rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
-        reward = self.rewardNetwork.predict([rewardShape])[0][0]
-        self.currentReward.append(reward)
-        self.selfReward.append(reward)
-
-        self.totalActionPerGame = self.totalActionPerGame + 1
         return a
 
     def loadModel(self, model):
@@ -334,7 +241,6 @@ class AgentAIRL(IAgent.IAgent):
         self.rewardNetwork = load_model(rewardModel)
         self.actor  = load_model(onlineModel)
         self.targetNetwork = load_model(onlineModel)
-        self.loadQValueReader()
         self.compileModels()
 
 
@@ -364,27 +270,6 @@ class AgentAIRL(IAgent.IAgent):
 
         d_s = self.demonstrations[0][batchIndex]
         d_a = self.demonstrations[1][batchIndex]
-
-        # d_r = self.demonstrations[2][batchIndex]
-        # d_d = self.demonstrations[3][batchIndex]
-        # d_new_s = self.demonstrations[4][batchIndex]
-        # d_possibleActions = self.demonstrations[5][batchIndex]
-        # d_newPossibleActions = self.demonstrations[6][batchIndex]
-        # d_idx = self.demonstrations[7][batchIndex]
-
-        # d_s, d_a, d_r, d_d, d_new_s, d_possibleActions, d_newPossibleActions, d_idx = self.demonstrations[0:7,batchIndex]
-        #
-        # lossOnline = self.updateOnline([s, new_s, a, d_s,d_new_s,d_a])
-        # lossReward = self.updateReward([s, new_s, a, d_s,d_new_s,d_a])
-        #
-        # self.losses.append([numpy.mean(lossOnline), numpy.mean(lossReward)])
-        #
-        # if (game + 1) % 1000 == 0:
-        #     self.actor.save(savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
-        #     self.lastModel = savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
-        #
-        #
-        # print (" -- E:" + str(self.epsilon) + " - Lp:" + str(numpy.mean(lossOnline)) + " - Lr" + str(numpy.mean(lossReward)))
 
 
         """
@@ -450,10 +335,10 @@ class AgentAIRL(IAgent.IAgent):
         self.losses.append([lossPolicy,lossReward])
 
         if (game + 1) % 5 == 0:
-            self.actor.save(savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
+            self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
             self.rewardNetwork.save(
-                savedNetwork + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5")
-            self.lastModel = [savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5", savedNetwork + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5"]
+                self.saveModelIn + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5")
+            self.lastModel = [self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5", savedNetwork + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5"]
 
         #
         print (" -- E:" + str(self.epsilon) + " - Lp:" + str(lossPolicy) + " - Lr" + str(lossReward))
@@ -475,9 +360,18 @@ class AgentAIRL(IAgent.IAgent):
         self.memory.memorize(state, action, reward, done, next_state, possibleActions, newPossibleActions, td_error)
 
 
-    def train(self, params=[]):
+    def train(self, observation, nextObservation, action, reward, info):
 
-        state, action, reward, next_state, done, savedNetwork, game, possibleActions, newPossibleActions, thisPlayer, score = params
+
+        rounds = info["rounds"]
+        thisPlayer = info["thisPlayer"]
+        done = info["thisPlayerFinished"]
+
+        state = numpy.concatenate((observation[0:11], observation[11:28]))
+        possibleActions = observation[28:]
+
+        next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
+        newPossibleActions = nextObservation[28:]
 
         if done:
 
@@ -505,8 +399,6 @@ class AgentAIRL(IAgent.IAgent):
 
         if self.training:
 
-            if not self.intrinsic == None:
-                self.intrinsic.trainPModel(params)
 
             #memorize
             action = numpy.argmax(action)
@@ -521,7 +413,7 @@ class AgentAIRL(IAgent.IAgent):
 
             # if self.memory.size() > self.batchSize:
             if self.memory.size() > self.batchSize and done:
-                self.updateModel(savedNetwork, game, thisPlayer)
+                self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
 
                 # Update the decay

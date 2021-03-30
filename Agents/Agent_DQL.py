@@ -1,8 +1,7 @@
-from Agents import IAgent
+from ChefsHatGym.Agents import IAgent
 import numpy
 import copy
 
-from collections import deque
 from keras.layers import Input, Dense, Flatten, Concatenate, Lambda, Multiply
 import keras.backend as K
 
@@ -15,75 +14,44 @@ from Agents import MemoryBuffer
 
 import random
 
+from ChefsHatGym.Rewards import RewardOnlyWinning
+
+
 class AgentDQL(IAgent.IAgent):
 
-    name=""
+    name="DQL_"
     actor = None
-    numMaxCards = 0
-    numCardsPerPlayer = 0
-
-    outputSize = 0
-
     training = False
 
-    lastModel = ""
+    def __init__(self, name, training, initialEpsilon=1, loadNetwork="", saveModelIn=""):
+        self.training = training
+        self.initialEpsilon = initialEpsilon
+        self.name += name
+        self.loadNetwork = loadNetwork
+        self.saveModelIn = saveModelIn
 
-    currentCorrectAction = 0
+        self.startAgent()
 
-    totalCorrectAction = []
-
-    totalAction = []
-    totalActionPerGame = 0
-
-    losses = []
-
-    SelectedActions = []
-
-    intrinsic = None
-
-    def __init__(self, params=[]):
-        self.training = params[0]
-        self.initialEpsilon = params[1]
-
-        if len(params) > 2:
-            agentName = "_"+params[2]
-        else:
-            agentName = ""
-
-        if len(params) > 3:
-            self.intrinsic = params[3]
-        else:
-            self.intrinsic = None
-
-        self.name = "DQL"+agentName
-
-        self.totalAction = []
-        self.totalActionPerGame = 0
-
-        self.currentCorrectAction = 0
-
-        self.totalCorrectAction = []
-        self.losses = []
+        self.reward = RewardOnlyWinning.RewardOnlyWinning()
 
 
-    def startAgent(self, params=[]):
-        numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = params
 
-        self.numMaxCards = numMaxCards
-        self.numCardsPerPlayer = numCardsPerPlayer
-        self.outputSize = actionNumber  # all the possible ways to play cards plus the pass action
+    def getReward(self, info):
 
-        if len(agentParams) > 1:
+        thisPlayer = info["thisPlayerPosition"]
+        matchFinished = info["thisPlayerFinished"]
 
-            self.hiddenLayers, self.hiddenUnits, self.batchSize,  self.tau = agentParams
+        return self.reward.getReward(thisPlayer, matchFinished)
 
-        else:
 
-            self.hiddenLayers = 1
-            self.hiddenUnits = 256
-            self.batchSize = 128
-            self.tau = 0.52  # target network update rate
 
+    def startAgent(self):
+        numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = 11, 28, 200, "", []
+
+        self.hiddenLayers = 1
+        self.hiddenUnits = 256
+        self.batchSize = 128
+        self.tau = 0.52  # target network update rate
 
         self.gamma = 0.95  # discount rate
         self.loss = "mse"
@@ -109,19 +77,11 @@ class AgentDQL(IAgent.IAgent):
         # self.learning_rate = 0.01
         self.learning_rate = 0.001
 
-        if loadModel == "":
+        if self.loadNetwork == "":
             self.buildModel()
         else:
             self.loadModel(loadModel)
 
-        self.losses = []
-
-        self.QValues = []
-
-        self.SelectedActions = []
-
-        self.MeanQValuesPerGame = []
-        self.currentGameQValues = []
 
 
     def buildModel(self):
@@ -139,7 +99,7 @@ class AgentDQL(IAgent.IAgent):
                """
 
         def model():
-            inputSize = self.numCardsPerPlayer + self.numMaxCards
+            inputSize = 28
             inputLayer = Input(shape=(inputSize,),
                                name="State")  # 5 cards in the player's hand + maximum 4 cards in current board
 
@@ -157,14 +117,14 @@ class AgentDQL(IAgent.IAgent):
                 # Have the network estimate the Advantage function as an intermediate layer
                 dense = Dense(self.outputSize + 1, activation='linear', name="duelingNetwork")(dense)
                 dense = Lambda(lambda i: K.expand_dims(i[:, 0], -1) + i[:, 1:] - K.mean(i[:, 1:], keepdims=True),
-                           output_shape=(self.outputSize,))(dense)
+                           output_shape=(200,))(dense)
 
 
-            possibleActions = Input(shape=(self.outputSize,),
+            possibleActions = Input(shape=(200,),
                        name="PossibleAction")
 
 
-            dense = Dense(self.outputSize, activation='softmax')(dense)
+            dense = Dense(200, activation='softmax')(dense)
             output = Multiply()([possibleActions, dense])
 
             # probOutput =  Dense(self.outputSize, activation='softmax')(dense)
@@ -173,30 +133,22 @@ class AgentDQL(IAgent.IAgent):
 
         self.actor = model()
         self.targetNetwork =  model()
-        self.loadQValueReader()
-        # self.successNetwork = Model([inputLayer, possibleActions], probOutput)
 
+    def getAction(self, observations):
 
-    def loadQValueReader(self):
-        softmaxLayer = self.actor.get_layer(index=-2)
-        self.QValueReader = Model(self.actor.inputs, softmaxLayer.output)
+        stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
+        possibleActions = observations[28:]
 
+        stateVector = numpy.expand_dims(stateVector, 0)
+        possibleActions = numpy.array(possibleActions)
 
-    def observeOponentAction(self, params):
-        self.intrinsic.observeOponentAction(params, self.actor)
-
-    def getAction(self, params):
-
-        stateVector, possibleActionsOriginal, reward = params
-        stateVector = numpy.expand_dims(numpy.array(stateVector), 0)
-
-        possibleActions2 = copy.copy(possibleActionsOriginal)
+        possibleActions2 = copy.copy(possibleActions)
 
         if numpy.random.rand() <= self.epsilon:
             itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
             random.shuffle(itemindex)
             aIndex = itemindex[0]
-            a = numpy.zeros(self.outputSize)
+            a = numpy.zeros(200)
             a[aIndex] = 1
 
         else:
@@ -205,22 +157,12 @@ class AgentDQL(IAgent.IAgent):
             a = self.actor.predict([stateVector, possibleActionsVector])[0]
             aIndex = numpy.argmax(a)
 
-            #Update QValues
-            self.QValues.append(a)
-            self.currentGameQValues.append(numpy.sum(a))
-
-            if possibleActionsOriginal[aIndex] == 1:
-                self.currentCorrectAction = self.currentCorrectAction + 1
-
-        self.totalActionPerGame = self.totalActionPerGame + 1
         return a
 
     def loadModel(self, model):
 
-        print ("loading:" + str(model))
         self.actor  = load_model(model)
         self.targetNetwork = load_model(model)
-        self.loadQValueReader()
 
 
     def updateTargetNetwork(self):
@@ -233,7 +175,7 @@ class AgentDQL(IAgent.IAgent):
 
 
 
-    def updateModel(self, savedNetwork, game, thisPlayer):
+    def updateModel(self, game, thisPlayer):
 
         """ Train Q-network on batch sampled from the buffer
                 """
@@ -263,11 +205,10 @@ class AgentDQL(IAgent.IAgent):
 
         # Train on batch
         history = self.actor.fit([s,possibleActions] , q, verbose=False)
-        self.losses.append(history.history['loss'])
 
-        if (game + 1) % 5 == 0:
-            self.actor.save(savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
-            self.lastModel = savedNetwork + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
+        if (game + 1) % 5 == 0 and not self.saveModelIn == "":
+            self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
+            self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
 
 
         print (" -- Epsilon:" + str(self.epsilon) + " - Loss:" + str(history.history['loss']))
@@ -289,43 +230,32 @@ class AgentDQL(IAgent.IAgent):
         self.memory.memorize(state, action, reward, done, next_state, possibleActions, newPossibleActions, td_error)
 
 
-    def train(self, params=[]):
+    def train(self, observation, nextObservation, action, reward, info):
 
-        state, action, reward, next_state, done, savedNetwork, game, possibleActions, newPossibleActions, thisPlayer, score = params
+        rounds = info["rounds"]
+        thisPlayer = info["thisPlayer"]
+        done = info["thisPlayerFinished"]
+
+
+        state = numpy.concatenate((observation[0:11], observation[11:28]))
+        possibleActions = observation[28:]
+
+
+        next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
+        newPossibleActions = nextObservation[28:]
+
         action = numpy.argmax(action)
         self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
 
-
         if done:
-            self.totalCorrectAction.append(self.currentCorrectAction)
-            self.totalAction.append(self.totalActionPerGame)
+            if self.training:
 
-            self.currentCorrectAction = 0
-            self.totalActionPerGame = 0
+                if self.memory.size() > self.batchSize and done:
+                    self.updateModel(rounds, thisPlayer)
+                    self.updateTargetNetwork()
 
-            meanQValueThisGame = numpy.average(self.currentGameQValues)
-
-            self.MeanQValuesPerGame.append(meanQValueThisGame)
-            self.currentGameQValues = []
-
-            # if not self.intrinsic == None:
-            #     if len(score) >= 1:
-            #         if thisPlayer in score:
-            #             self.intrinsic.doEndOfGame(score, thisPlayer, params)
-
-
-        if self.training:
-
-            if not self.intrinsic == None:
-                self.intrinsic.trainPModel(params)
-
-            if self.memory.size() > self.batchSize and done:
-                self.updateModel(savedNetwork, game, thisPlayer)
-                self.updateTargetNetwork()
-
-                # Update the decay
-                if self.epsilon > self.epsilon_min:
-                    self.epsilon *= self.epsilon_decay
+                    if self.epsilon > self.epsilon_min:
+                        self.epsilon *= self.epsilon_decay
 
 
 
