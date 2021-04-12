@@ -50,7 +50,7 @@ class AgentDQL(IAgent.IAgent):
 
         self.hiddenLayers = 1
         self.hiddenUnits = 256
-        self.batchSize = 128
+        self.batchSize = 10
         self.tau = 0.52  # target network update rate
 
         self.gamma = 0.95  # discount rate
@@ -206,9 +206,9 @@ class AgentDQL(IAgent.IAgent):
         # Train on batch
         history = self.actor.fit([s,possibleActions] , q, verbose=False)
 
-        if (game + 1) % 5 == 0 and not self.saveModelIn == "":
-            self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
-            self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
+        # if (game + 1) % 5 == 0 and not self.saveModelIn == "":
+        #     self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
+        #     self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
 
 
         print (" -- Epsilon:" + str(self.epsilon) + " - Loss:" + str(history.history['loss']))
@@ -227,19 +227,17 @@ class AgentDQL(IAgent.IAgent):
         else:
             td_error = 0
 
+
         self.memory.memorize(state, action, reward, done, next_state, possibleActions, newPossibleActions, td_error)
 
 
-    def train(self, observation, nextObservation, action, reward, info):
 
-        rounds = info["rounds"]
-        thisPlayer = info["thisPlayer"]
+    def actionUpdate(self, observation, nextObservation, action, reward, info):
+
         done = info["thisPlayerFinished"]
-
 
         state = numpy.concatenate((observation[0:11], observation[11:28]))
         possibleActions = observation[28:]
-
 
         next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
         newPossibleActions = nextObservation[28:]
@@ -247,17 +245,20 @@ class AgentDQL(IAgent.IAgent):
         action = numpy.argmax(action)
         self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
 
-        if done:
-            if self.training:
 
-                if self.memory.size() > self.batchSize and done:
-                    self.updateModel(rounds, thisPlayer)
-                    self.updateTargetNetwork()
+    def matchUpdate(self, info):
 
-                    if self.epsilon > self.epsilon_min:
-                        self.epsilon *= self.epsilon_decay
+        rounds = info["rounds"]
+        thisPlayer = info["thisPlayer"]
 
+        if self.training:
 
+            if self.memory.size() > self.batchSize:
+                self.updateModel(rounds, thisPlayer)
+                self.updateTargetNetwork()
+
+                if self.epsilon > self.epsilon_min:
+                    self.epsilon *= self.epsilon_decay
 
 
 

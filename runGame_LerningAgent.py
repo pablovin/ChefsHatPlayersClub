@@ -36,7 +36,7 @@ episodes = 1
 env = gym.make('chefshat-v0') #starting the game Environment
 env.startExperiment(rewardFunctions=rewards, gameType=gameType, stopCriteria=gameStopCriteria, playerNames=agentNames, logDirectory=saveDirectory, verbose=verbose, saveDataset=True, saveLog=True)
 
-"""Start Environment"""
+"""Train Agent"""
 for a in range(episodes):
 
     observations = env.reset()
@@ -51,10 +51,12 @@ for a in range(episodes):
         while not info["validAction"]:
             nextobs, reward, isMatchOver, info = env.step(action)
 
-        if info["thisPlayer"] == 3:
-            currentPlayer.train(observations, nextobs, action, reward, info)
+
+        currentPlayer.actionUpdate(observations, nextobs, action, reward, info)
 
         if isMatchOver:
+            for p in playersAgents:
+                p.matchUpdate(info)
             print("-------------")
             print("Match:" + str(info["matches"]))
             print("Score:" + str(info["score"]))
