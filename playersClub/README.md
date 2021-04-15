@@ -11,8 +11,7 @@ pip install ChefsHatPlayersClub
 
 ##Available Agents
 
-Agents are divided into types, currently these are the types of available agents:
-
+Agents are divided into types, currently these are the types of available agents. You can check th examples folder for more examples!
 
 ### Classic Agents
 
@@ -73,17 +72,6 @@ type | type of the agent, see table above
 initialEpsilon| when learning, initial exploration value
 saveFolder| folder that the agent will be saved in
 verbose | verbose when learning
-
-
-## Using trained agents
-
-Check the examples folder for more information!
-
-You can instantiate an agent to be used in a game:
-
-```python
-agent4 = DQL.DQL(name="DQL4", continueTraining=False, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
-```
 
 
 ## Citations

@@ -50,11 +50,11 @@ class PPO(IAgent.IAgent):
             "vsEveryone":["Trained/ppo_actor_vsEveryone.hd5","Trained/ppo_critic_vsEveryone.hd5"],
                 "vsSelf":["Trained/ppo_actor_vsSelf.hd5","Trained/ppo_critic_vsSelf.hd5"]}
 
-    downloadFrom = {"vsRandom":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsRandom.hd5,"
+    downloadFrom = {"vsRandom":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsRandom.hd5",
                                 "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsRandom.hd5"],
             "vsEveryone":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsEveryone.hd5",
                           "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsEveryone.hd5"],
-                "vsSelf":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsSelf.hd5,"
+                "vsSelf":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsSelf.hd5",
                           "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsSelf.hd5"],}
 
 
@@ -94,8 +94,6 @@ class PPO(IAgent.IAgent):
         self.hiddenLayers = 2
         self.hiddenUnits = 64
         self.gamma = 0.95  # discount rate
-
-        self.memory = []
 
         #Game memory
         self.resetMemory()
@@ -229,8 +227,6 @@ class PPO(IAgent.IAgent):
 
 
     def updateModel(self, game, thisPlayer):
-
-        self.memory = numpy.array(self.memory)
 
         state =  numpy.array(self.states)
 
