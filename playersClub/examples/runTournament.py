@@ -19,9 +19,9 @@ def getAllAgents(compType):
 
 
     types = ["lilAbsol" ,"lilDana" ,"lilJBA" ,"lilRamsey" , "lilYves" ,
-            "lilAle" ,"lilDJ" ,"liLLena" ,"liLRaos" ,
+            "lilAle" ,"lilDJ" ,"lilLena" ,"lilRaos" ,
             "lilAuar" ,"lilDomi948" ,"lilLordelo" ,"lilThecube" ,
-            "lilBlio" ,"lilEle" ,"lilMars" ,"liLThurran" ,
+            "lilBlio" ,"lilEle" ,"lilMars" ,"lilThurran" ,
             "lilChu" ,"lilFael" ,"lilNathalia" ,"lilTisantana" ,
              "lilDa48" ,"lilGeo" ,"lilNik" ,"lilWinne", "Scratch" ]
 
