@@ -63,7 +63,7 @@ class DQL(IAgent.IAgent):
             self.loadModel(loadNetwork)
 
 
-    def getReward(self, info):
+    def getReward(self, info, stateBefore, stateAfter):
 
         thisPlayer = info["thisPlayerPosition"]
         matchFinished = info["thisPlayerFinished"]

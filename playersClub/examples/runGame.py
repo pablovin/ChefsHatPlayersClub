@@ -1,6 +1,6 @@
 from ChefsHatPlayersClub.Agents.Classic import DQL
 from ChefsHatPlayersClub.Agents.Classic import PPO
-from ChefsHatPlayersClub.Agents.Classic import A2C
+from ChefsHatPlayersClub.Agents.KarmaChameleonClub import AIRL
 from ChefsHatGym.Agents import Agent_Naive_Random
 from ChefsHatGym.env import ChefsHatEnv
 
@@ -16,9 +16,9 @@ gameStopCriteria = 10
 
 """Player Parameters"""
 agent1 = Agent_Naive_Random.AgentNaive_Random("Random1")
-agent2 = A2C.A2C(name="A2C2", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
-agent3 = PPO.PPO(name="PPO3", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
-agent4 = DQL.DQL(name="DQL4", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
+agent2 = AIRL.AIRL(name="AIRL", continueTraining=True, type="lilDJ", initialEpsilon=1, verbose=True)  # training agent
+agent3 = PPO.PPO(name="PPO3", continueTraining=False, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
+agent4 = DQL.DQL(name="DQL4", continueTraining=False, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
 agentNames = [agent1.name, agent2.name, agent3.name, agent4.name]
 playersAgents = [agent1, agent2, agent3, agent4]
 
@@ -32,7 +32,6 @@ verbose = False
 saveLog = False
 saveDataset = False
 episodes = 1
-
 
 """Setup environment"""
 env = gym.make('chefshat-v0') #starting the game Environment

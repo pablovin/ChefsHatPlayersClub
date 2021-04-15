@@ -49,6 +49,7 @@ class PPO(IAgent.IAgent):
     loadFrom = {"vsRandom":["Trained/ppo_actor_vsRandom.hd5","Trained/ppo_critic_vsRandom.hd5"],
             "vsEveryone":["Trained/ppo_actor_vsEveryone.hd5","Trained/ppo_critic_vsEveryone.hd5"],
                 "vsSelf":["Trained/ppo_actor_vsSelf.hd5","Trained/ppo_critic_vsSelf.hd5"]}
+
     downloadFrom = {"vsRandom":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsRandom.hd5,"
                                 "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsRandom.hd5"],
             "vsEveryone":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsEveryone.hd5",
@@ -138,7 +139,7 @@ class PPO(IAgent.IAgent):
                       loss=[proximal_policy_optimization_loss()])
 
 
-    def getReward(self, info):
+    def getReward(self, info, stateBefore, stateAfter):
 
         thisPlayer = info["thisPlayerPosition"]
         matchFinished = info["thisPlayerFinished"]
@@ -288,10 +289,10 @@ class PPO(IAgent.IAgent):
 
     def actionUpdate(self, observation, nextObservation, action, reward, info):
 
-        state = numpy.concatenate((observation[0:11], observation[11:28]))
-        possibleActions = observation[28:]
-
         if self.training:
+            state = numpy.concatenate((observation[0:11], observation[11:28]))
+            possibleActions = observation[28:]
+
             realEncoding = action
             action = numpy.zeros(action.shape)
             action[numpy.argmax(realEncoding)] = 1

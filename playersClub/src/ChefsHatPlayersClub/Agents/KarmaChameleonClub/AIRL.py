@@ -10,16 +10,74 @@ from keras.optimizers import Adam
 
 from keras.models import load_model
 
-from Agents import MemoryBuffer
+from ChefsHatPlayersClub.Agents.Util import MemoryBuffer
 
 import random
+
+import tarfile
+import os
+import sys
+import urllib
 
 class AIRL(IAgent.IAgent):
 
     name="AIRL_"
 
-    type = {}
-    def __init__(self, name, continueTraining, demonstrations=None, type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
+    loadFrom = {"lilAbsol": "Trained/lilAbsol/",
+                "lilAle": "Trained/lilAle/",
+                "lilAuar": "Trained/lilAuar",
+                "lilBlio": "Trained/lilBlio/",
+                "lilChu": "Trained/lilChu/",
+                "lilDa48": "Trained/lilDa48/",
+                "lilDana": "Trained/lilDana",
+                "lilDJ": "Trained/lilDJ/",
+                "lilDomi948": "Trained/lilDomi948",
+                "lilEle": "Trained/lilEle/",
+                "lilFael": "Trained/lilFael/",
+                "lilGeo": "Trained/lilGeo/",
+                "lilJBA": "Trained/lilJBA/",
+                "liLLena": "Trained/liLLena/",
+                "lilLordelo": "Trained/lilLordelo/",
+                "lilMars": "Trained/lilMars/",
+                "lilNathalia": "Trained/lilNathalia/",
+                "lilNik": "Trained/lilNik/",
+                "lilRamsey": "Trained/lilRamsey/",
+                "liLRaos": "Trained/liLRaos/",
+                "lilThecube": "Trained/lilThecube/",
+                "liLThurran": "Trained/liLThurran/",
+                "lilTisantana": "Trained/lilTisantana/",
+                "lilWinne": "Trained/lilWinne/",
+                "lilYves": "Trained/lilYves/"}
+
+    downloadFrom = {"lilAbsol": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAbsol.tar.xz",
+                    "lilAle": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAle.tar.xz",
+                    "lilAuar":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAuar.tar.xz",
+                    "lilBlio":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilBlio.tar.xz",
+                    "lilChu": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilChu.tar.xz",
+                    "lilDa48": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDa48.tar.xz",
+                    "lilDana": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDana.tar.xz",
+                    "lilDJ": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDJ.tar.xz",
+                    "lilDomi948": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDomi948.tar.xz",
+                    "lilEle": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilEle.tar.xz",
+                    "lilFael": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilFael.tar.xz",
+                    "lilGeo": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilGeo.tar.xz",
+                    "lilJBA": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilJBA.tar.xz",
+                    "liLLena": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/liLLena.tar.xz",
+                    "lilLordelo": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilLordelo.tar.xz",
+                    "lilMars": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilMars.tar.xz",
+                    "lilNathalia": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilNathalia.tar.xz",
+                    "lilNik": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilNik.tar.xz",
+                    "lilRamsey": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilRamsey.tar.xz",
+                    "liLRaos": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/liLRaos.tar.xz",
+                    "lilThecube": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThecube.tar.xz",
+                    "liLThurran": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/liLThurran.tar.xz",
+                    "lilTisantana": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilTisantana.tar.xz",
+                    "lilWinne": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilWinne.tar.xz",
+                    "lilYves": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilYves.tar.xz",
+                     }
+
+
+    def __init__(self, name, continueTraining, demonstrations="", type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
         self.name += type + "_" + name
@@ -27,9 +85,33 @@ class AIRL(IAgent.IAgent):
         self.saveModelIn = saveFolder
 
         self.verbose = verbose
-        self.demonstrations = numpy.load(demonstrations, allow_pickle=True)
 
+        if not demonstrations == "":
+            self.demonstrations = numpy.load(demonstrations, allow_pickle=True)
+        else:
+            self.demonstrations = None
         self.startAgent()
+
+        if not type == "Scratch":
+            fileName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + self.loadFrom[type]
+
+
+            if not os.path.exists(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"):
+                os.makedirs(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/")
+
+            if not os.path.exists(fileName):
+                downloadName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"+"/"+self.downloadFrom[type].split("/")[-1]
+                urllib.request.urlretrieve(self.downloadFrom[type], downloadName)
+
+                with tarfile.open(downloadName) as f:
+                    f.extractall(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/")
+
+
+            self.loadModel([fileName+"/actor",fileName+"/reward"])
+
+        if not loadNetwork == "":
+            self.loadModel(loadNetwork)
+
 
 
 
@@ -56,11 +138,10 @@ class AIRL(IAgent.IAgent):
 
         # print ("Shape:"+ str(self.demonstrations.shape))
 
-        while self.demonstrations.shape[0] < self.batchSize:
-            random.shuffle(self.demonstrations)
-            # print("Shape:" + str(self.demonstrations.shape))
-            # print("Shape:" + str(self.demonstrations[0].shape))
-            self.demonstrations = numpy.append(self.demonstrations,numpy.expand_dims(self.demonstrations[0],0), axis=0)
+        if not self.demonstrations ==None:
+            while self.demonstrations.shape[0] < self.batchSize:
+                random.shuffle(self.demonstrations)
+                self.demonstrations = numpy.append(self.demonstrations,numpy.expand_dims(self.demonstrations[0],0), axis=0)
 
         # print ("Shape:"+ str(self.demonstrations.shape))
         # input("here")
@@ -79,14 +160,12 @@ class AIRL(IAgent.IAgent):
         # self.learning_rate = 0.01
         self.learning_rate = 0.001
 
-        if loadModel == "":
-            self.buildModel()
-        else:
-            self.loadModel(loadModel)
+        self.buildModel()
 
-    def getReward(self, info):
 
-        state = numpy.concatenate((info["obsBefore"][0:11], info["obsBefore"][11:28]))
+    def getReward(self, info, stateBefore, stateAfter):
+
+        state = numpy.concatenate((stateBefore[0:11], stateBefore[11:28]))
 
         rewardShape = numpy.concatenate([state,info["action"]])
         rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
@@ -220,7 +299,6 @@ class AIRL(IAgent.IAgent):
 
     def getAction(self, observations):
 
-
         state = numpy.concatenate((observations[0:11], observations[11:28]))
         possibleActionsOriginal = observations[28:]
 
@@ -234,7 +312,6 @@ class AIRL(IAgent.IAgent):
             aIndex = itemindex[0]
             a = numpy.zeros(200)
             a[aIndex] = 1
-
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
             a = self.targetNetwork.predict([stateVector, possibleActionsVector])[0]
@@ -258,9 +335,6 @@ class AIRL(IAgent.IAgent):
             tgt_W[i] = self.tau * W[i] + (1 - self.tau) * tgt_W[i]
         self.targetNetwork.set_weights(tgt_W)
 
-        #
-        # self.actor.set_weights(self.actor.get_weights())
-
 
     def updateModel(self, game, thisPlayer):
 
@@ -274,26 +348,9 @@ class AIRL(IAgent.IAgent):
         random.shuffle(batchIndex)
         batchIndex = batchIndex[0:self.batchSize]
 
-        # print ("Bacth Index:" + str(batchIndex))
-        # print("Shape Demonstration Index:" + str(self.demonstrations.shape))
-        # print("Shape Board Demonstrations:" + str(self.demonstrations[batchIndex, 0].shape))
-        # print(" Board Demonstrations:" + str(self.demonstrations[batchIndex, 0]))
-        # input("here")
-        # board, playerHand, action
-        # board = self.demonstrations[batchIndex,0]
-        # # print ("Board:" + str(board))
-        # # input("here")
-        # playerHand = self.demonstrations[batchIndex,1]
-        #
-        # print ("Shape board:" + str(board.shape))
-        # print ("Shape playerHand:" + str(playerHand.shape))
+
         d_s = self.demonstrations[batchIndex,0]
-        # print ("Shape d_s:" + str(d_s.shape))
         d_a = self.demonstrations[batchIndex,1]
-        # print ("D_a:"+str(d_a))
-        # print ("Shape:" + str(d_a.shape))
-        # input("here")
-        # d_a = [numpy.argmax(i) for i in d_a]
 
 
         """
@@ -366,10 +423,10 @@ class AIRL(IAgent.IAgent):
             self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
             self.rewardNetwork.save(
                 self.saveModelIn + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5")
-            self.lastModel = [self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5", self.saveModelIn + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5"]
 
         #
-        print (" -- E:" + str(self.epsilon) + " - Lp:" + str(lossPolicy) + " - Lr" + str(lossReward))
+        if self.verbose:
+            print("-- " + self.name + ": Epsilon:" + str(self.epsilon) + " - Loss Policy: " + str(lossPolicy) + " - Loss Reward: " + str(lossReward))
 
 
     def memorize(self, state, action, reward, next_state, done, possibleActions, newPossibleActions):
@@ -387,43 +444,40 @@ class AIRL(IAgent.IAgent):
 
         self.memory.memorize(state, action, reward, done, next_state, possibleActions, newPossibleActions, td_error)
 
-
-    def train(self, observation, nextObservation, action, reward, info):
-
-
-        rounds = info["rounds"]
-        thisPlayer = info["thisPlayer"]
-        done = info["thisPlayerFinished"]
-
-        state = numpy.concatenate((observation[0:11], observation[11:28]))
-        possibleActions = observation[28:]
-
-        next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
-        newPossibleActions = nextObservation[28:]
-
+    def matchUpdate(self, info):
 
         if self.training:
-
-
-            #memorize
-            action = numpy.argmax(action)
-            # state = numpy.expand_dims(numpy.array(state), 0)
-            # next_state = numpy.expand_dims(numpy.array(next_state), 0)
-            # possibleActions = numpy.expand_dims(numpy.array(possibleActions), 0)
-
-            self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
-
-            #
-            # self.memory.append((state, action, reward, next_state, done, possibleActions))
-
-            # if self.memory.size() > self.batchSize:
-            if self.memory.size() > self.batchSize and done:
+            rounds = info["rounds"]
+            thisPlayer = info["thisPlayer"]
+            if self.memory.size() > self.batchSize:
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
 
                 # Update the decay
                 if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay
+
+
+    def actionUpdate(self, observation, nextObservation, action, reward, info):
+
+
+
+        if self.training:
+
+            done = info["thisPlayerFinished"]
+
+            state = numpy.concatenate((observation[0:11], observation[11:28]))
+            possibleActions = observation[28:]
+
+            next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
+            newPossibleActions = nextObservation[28:]
+
+            #memorize
+            action = numpy.argmax(action)
+            self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
+
+
+
 
 
 
