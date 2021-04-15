@@ -50,4 +50,5 @@ typing-extensions==3.7.4.3
 urllib3==1.26.4
 Werkzeug==1.0.1
 wrapt==1.12.1
+xtarfile==0.1.0
 zipp==3.4.1
