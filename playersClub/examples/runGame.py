@@ -10,13 +10,13 @@ import gym
 
 """Game parameters"""
 gameType = ChefsHatEnv.GAMETYPE["MATCHES"]
-gameStopCriteria = 100
+gameStopCriteria = 10
 
 """Player Parameters"""
 agent1 = Agent_Naive_Random.AgentNaive_Random("Random1")
 agent2 = Agent_Naive_Random.AgentNaive_Random("Random2")
 agent3 = Agent_Naive_Random.AgentNaive_Random("Random3")
-agent4 = DQL.DQL(name="DQL3", continueTraining=False,type="vsRandom", initialEpsilon=1)  # training agent
+agent4 = DQL.DQL(name="DQL3", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
 agentNames = [agent1.name, agent2.name, agent3.name, agent4.name]
 playersAgents = [agent1, agent2, agent3, agent4]
 
@@ -50,7 +50,6 @@ for a in range(episodes):
         info = {"validAction":False}
         while not info["validAction"]:
             nextobs, reward, isMatchOver, info = env.step(action)
-
 
         currentPlayer.actionUpdate(observations, nextobs, action, reward, info)
 

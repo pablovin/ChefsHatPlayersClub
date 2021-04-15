@@ -19,6 +19,8 @@ from ChefsHatGym.Rewards import RewardOnlyWinning
 import os
 import sys
 
+import urllib.request
+
 class DQL(IAgent.IAgent):
 
     name="DQL_"
@@ -29,7 +31,9 @@ class DQL(IAgent.IAgent):
     loadFrom = {"vsRandom":"Trained/dql_vsRandom.hd5",
             "vsEveryone":"Trained/dql_vsEveryone.hd5",
                 "vsSelf":"Trained/dql_vsSelf.hd5",}
-
+    downloadFrom = {"vsRandom":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5",
+            "vsEveryone":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsEveryone.hd5",
+                "vsSelf":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsSelf.hd5",}
 
     def __init__(self, name, continueTraining=False, type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
         self.training = continueTraining
@@ -45,9 +49,15 @@ class DQL(IAgent.IAgent):
         self.startAgent()
 
 
-
         if not type=="Scratch":
-            self.loadModel(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/"+self.loadFrom[type])
+            fileName = os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+self.loadFrom[type]
+            if not os.path.exists(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/Trained/"):
+                os.mkdir(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/Trained/")
+
+            if not os.path.exists(fileName):
+                urllib.request.urlretrieve(self.downloadFrom[type], fileName)
+            # fileName = "/home/pablo/Documents/Workspace/ChefsHatPlayersClub/venv/lib/python3.6/site-packages/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5"
+            self.loadModel(fileName)
 
         if not loadNetwork =="":
             self.loadModel(loadNetwork)
@@ -167,7 +177,6 @@ class DQL(IAgent.IAgent):
 
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
             a = self.actor.predict([stateVector, possibleActionsVector])[0]
-            aIndex = numpy.argmax(a)
 
         return a
 
@@ -218,7 +227,6 @@ class DQL(IAgent.IAgent):
 
         if (game + 1) % 5 == 0 and not self.saveModelIn == "":
             self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
-            self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
 
         if self.verbose:
             print ("-- "+self.name + ": Epsilon:" + str(self.epsilon) + " - Loss:" + str(history.history['loss']))
@@ -244,25 +252,24 @@ class DQL(IAgent.IAgent):
 
     def actionUpdate(self, observation, nextObservation, action, reward, info):
 
-        done = info["thisPlayerFinished"]
+        if self.training:
+            done = info["thisPlayerFinished"]
 
-        state = numpy.concatenate((observation[0:11], observation[11:28]))
-        possibleActions = observation[28:]
+            state = numpy.concatenate((observation[0:11], observation[11:28]))
+            possibleActions = observation[28:]
 
-        next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
-        newPossibleActions = nextObservation[28:]
+            next_state = numpy.concatenate((nextObservation[0:11], nextObservation[11:28]))
+            newPossibleActions = nextObservation[28:]
 
-        action = numpy.argmax(action)
-        self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
+            action = numpy.argmax(action)
+            self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
 
 
     def matchUpdate(self, info):
 
-        rounds = info["rounds"]
-        thisPlayer = info["thisPlayer"]
-
         if self.training:
-
+            rounds = info["rounds"]
+            thisPlayer = info["thisPlayer"]
             if self.memory.size() > self.batchSize:
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
