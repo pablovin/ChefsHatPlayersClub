@@ -4,7 +4,7 @@ from ChefsHatGym.Agents import IAgent
 import numpy
 import copy
 
-from keras.layers import Input, Dense, Flatten, Concatenate, Multiply
+from keras.layers import Input, Dense, Multiply
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -49,9 +49,12 @@ class PPO(IAgent.IAgent):
     loadFrom = {"vsRandom":["Trained/ppo_actor_vsRandom.hd5","Trained/ppo_critic_vsRandom.hd5"],
             "vsEveryone":["Trained/ppo_actor_vsEveryone.hd5","Trained/ppo_critic_vsEveryone.hd5"],
                 "vsSelf":["Trained/ppo_actor_vsSelf.hd5","Trained/ppo_critic_vsSelf.hd5"]}
-    downloadFrom = {"vsRandom":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5",
-            "vsEveryone":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsEveryone.hd5",
-                "vsSelf":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsSelf.hd5",}
+    downloadFrom = {"vsRandom":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsRandom.hd5,"
+                                "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsRandom.hd5"],
+            "vsEveryone":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsEveryone.hd5",
+                          "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsEveryone.hd5"],
+                "vsSelf":["https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsSelf.hd5,"
+                          "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsSelf.hd5"],}
 
 
 
@@ -71,13 +74,13 @@ class PPO(IAgent.IAgent):
         if not type == "Scratch":
             fileNameActor = os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + self.loadFrom[type][0]
             fileNameCritic = os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + self.loadFrom[type][1]
-            if not os.path.exists(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6] + "/Trained/"):
+            if not os.path.exists(os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + "/Trained/"):
                 os.mkdir(os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + "/Trained/")
 
             if not os.path.exists(fileNameCritic):
                 urllib.request.urlretrieve(self.downloadFrom[type][0], fileNameActor)
-                urllib.request.urlretrieve(self.downloadFrom[type], fileNameCritic)
-            # fileName = "/home/pablo/Documents/Workspace/ChefsHatPlayersClub/venv/lib/python3.6/site-packages/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5"
+                urllib.request.urlretrieve(self.downloadFrom[type][1], fileNameCritic)
+
             self.loadModel([fileNameActor,fileNameCritic])
 
         if not loadNetwork == "":
@@ -95,9 +98,6 @@ class PPO(IAgent.IAgent):
 
         #Game memory
         self.resetMemory()
-
-        self.losses = []
-        self.QValues = []
 
         self.learning_rate = 1e-4
 
@@ -136,6 +136,14 @@ class PPO(IAgent.IAgent):
 
         self.actor.compile(optimizer=Adam(lr=self.learning_rate),
                       loss=[proximal_policy_optimization_loss()])
+
+
+    def getReward(self, info):
+
+        thisPlayer = info["thisPlayerPosition"]
+        matchFinished = info["thisPlayerFinished"]
+
+        return self.reward.getReward(thisPlayer, matchFinished)
 
 
 
@@ -178,7 +186,7 @@ class PPO(IAgent.IAgent):
             itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
             random.shuffle(itemindex)
             aIndex = itemindex[0]
-            a = numpy.zeros(self.outputSize)
+            a = numpy.zeros(200)
             a[aIndex] = 1
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
@@ -226,7 +234,7 @@ class PPO(IAgent.IAgent):
         state =  numpy.array(self.states)
 
         action = self.actions
-        reward = self.rewards
+        reward = numpy.array(self.rewards)
         possibleActions = numpy.array(self.possibleActions)
         realEncoding = numpy.array(self.realEncoding)
 
@@ -235,21 +243,20 @@ class PPO(IAgent.IAgent):
         state_values = self.critic.predict(numpy.array(state))
         advantages = discounted_rewards - numpy.reshape(state_values, len(state_values))
 
-
         criticLoss = self.critic.train_on_batch([state], [reward])
-
 
         actions = []
         for i in range(len(action)):
             advantage = numpy.zeros(numpy.array(action[i]).shape)
             advantage[0] = advantages[i]
+            # print ("advantages:" + str(numpy.array(advantage).shape))
+            # print ("actions:" + str(numpy.array(action[i]).shape))
+            # print("realEncoding:" + str(numpy.array(realEncoding[i]).shape))
             concatenated = numpy.concatenate((action[i], realEncoding[i], advantage))
             actions.append(concatenated)
+        actions = numpy.array(actions)
 
         actorLoss = self.actor.train_on_batch([state, possibleActions], [actions])
-
-
-        self.losses.append([actorLoss,criticLoss])
 
         #Update the decay
         if self.epsilon > self.epsilon_min:
@@ -270,15 +277,12 @@ class PPO(IAgent.IAgent):
         self.possibleActions = []
         self.realEncoding = []
 
-    def observeOponentAction(self, params):
-        self.intrinsic.observeOponentAction(params, self.actor)
-
     def matchUpdate(self, info):
 
         if self.training:
             rounds = info["rounds"]
             thisPlayer = info["thisPlayer"]
-            self.updateModel(savedNetwork, rounds, thisPlayer)
+            self.updateModel(rounds, thisPlayer)
             self.resetMemory()
 
 
@@ -286,8 +290,6 @@ class PPO(IAgent.IAgent):
 
         state = numpy.concatenate((observation[0:11], observation[11:28]))
         possibleActions = observation[28:]
-
-        action = numpy.argmax(action)
 
         if self.training:
             realEncoding = action
