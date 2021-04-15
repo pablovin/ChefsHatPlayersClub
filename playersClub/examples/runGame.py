@@ -1,5 +1,6 @@
 from ChefsHatPlayersClub.Agents.Classic import DQL
 from ChefsHatPlayersClub.Agents.Classic import PPO
+from ChefsHatPlayersClub.Agents.Classic import A2C
 from ChefsHatGym.Agents import Agent_Naive_Random
 from ChefsHatGym.env import ChefsHatEnv
 
@@ -15,9 +16,9 @@ gameStopCriteria = 10
 
 """Player Parameters"""
 agent1 = Agent_Naive_Random.AgentNaive_Random("Random1")
-agent2 = Agent_Naive_Random.AgentNaive_Random("Random2")
-agent3 = PPO.PPO(name="PPO2", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
-agent4 = DQL.DQL(name="DQL3", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
+agent2 = A2C.A2C(name="A2C2", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
+agent3 = PPO.PPO(name="PPO3", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
+agent4 = DQL.DQL(name="DQL4", continueTraining=True, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
 agentNames = [agent1.name, agent2.name, agent3.name, agent4.name]
 playersAgents = [agent1, agent2, agent3, agent4]
 
