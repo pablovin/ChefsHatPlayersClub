@@ -1,4 +1,4 @@
-from Agents import Agent_DQL
+from ChefsHatPlayersClub.Agents.Classic import DQL
 from ChefsHatGym.Agents import Agent_Naive_Random
 from ChefsHatGym.env import ChefsHatEnv
 
@@ -16,7 +16,7 @@ gameStopCriteria = 100
 agent1 = Agent_Naive_Random.AgentNaive_Random("Random1")
 agent2 = Agent_Naive_Random.AgentNaive_Random("Random2")
 agent3 = Agent_Naive_Random.AgentNaive_Random("Random3")
-agent4 = Agent_DQL.AgentDQL(name="DQL3", training=True, initialEpsilon=1)  # training agent
+agent4 = DQL.DQL(name="DQL3", continueTraining=False,type="vsRandom", initialEpsilon=1)  # training agent
 agentNames = [agent1.name, agent2.name, agent3.name, agent4.name]
 playersAgents = [agent1, agent2, agent3, agent4]
 
@@ -25,7 +25,7 @@ for r in playersAgents:
     rewards.append(r.getReward)
 
 """Experiment parameters"""
-saveDirectory = "examples/"
+saveDirectory = "/home/pablo/Documents/Datasets/ChefsHatCompetition/playerClubTesting/"
 verbose = False
 saveLog = False
 saveDataset = False

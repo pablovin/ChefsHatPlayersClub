@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 from collections import deque
-from Agents.SumTree import  SumTree
+from ChefsHatPlayersClub.Agents.Util.SumTree import  SumTree
 
 class MemoryBuffer(object):
     """ Memory Buffer Helper class for Experience Replay

@@ -2,7 +2,7 @@ from ChefsHatGym.Agents import IAgent
 import numpy
 import copy
 
-from keras.layers import Input, Dense, Flatten, Concatenate, Lambda, Multiply
+from keras.layers import Input, Dense, Lambda, Multiply
 import keras.backend as K
 
 from keras.models import Model
@@ -10,30 +10,47 @@ from keras.optimizers import Adam
 
 from keras.models import load_model
 
-from Agents import MemoryBuffer
+from ChefsHatPlayersClub.Agents.Util import MemoryBuffer
 
 import random
 
 from ChefsHatGym.Rewards import RewardOnlyWinning
 
+import os
+import sys
 
-class AgentDQL(IAgent.IAgent):
+class DQL(IAgent.IAgent):
 
     name="DQL_"
     actor = None
     training = False
 
-    def __init__(self, name, training, initialEpsilon=1, loadNetwork="", saveModelIn=""):
-        self.training = training
+
+    loadFrom = {"vsRandom":"Trained/dql_vsRandom.hd5",
+            "vsEveryone":"Trained/dql_vsEveryone.hd5",
+                "vsSelf":"Trained/dql_vsSelf.hd5",}
+
+
+    def __init__(self, name, continueTraining=False, type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
+        self.training = continueTraining
         self.initialEpsilon = initialEpsilon
-        self.name += name
+        self.name += type+"_"+name
         self.loadNetwork = loadNetwork
-        self.saveModelIn = saveModelIn
+        self.saveModelIn = saveFolder
+        self.verbose = verbose
+
+        self.type = type
+        self.reward = RewardOnlyWinning.RewardOnlyWinning()
 
         self.startAgent()
 
-        self.reward = RewardOnlyWinning.RewardOnlyWinning()
 
+
+        if not type=="Scratch":
+            self.loadModel(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/"+self.loadFrom[type])
+
+        if not loadNetwork =="":
+            self.loadModel(loadNetwork)
 
 
     def getReward(self, info):
@@ -44,9 +61,7 @@ class AgentDQL(IAgent.IAgent):
         return self.reward.getReward(thisPlayer, matchFinished)
 
 
-
     def startAgent(self):
-        numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = 11, 28, 200, "", []
 
         self.hiddenLayers = 1
         self.hiddenUnits = 256
@@ -77,10 +92,7 @@ class AgentDQL(IAgent.IAgent):
         # self.learning_rate = 0.01
         self.learning_rate = 0.001
 
-        if self.loadNetwork == "":
-            self.buildModel()
-        else:
-            self.loadModel(loadModel)
+        self.buildModel()
 
 
 
@@ -187,8 +199,6 @@ class AgentDQL(IAgent.IAgent):
         next_q = self.actor.predict([new_s, newPossibleActions])
         q_targ = self.targetNetwork.predict([new_s, newPossibleActions])
 
-        # self.successNetwork.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
-
         for i in range(s.shape[0]):
             old_q = q[i, a[i]]
             if d[i]:
@@ -206,12 +216,12 @@ class AgentDQL(IAgent.IAgent):
         # Train on batch
         history = self.actor.fit([s,possibleActions] , q, verbose=False)
 
-        # if (game + 1) % 5 == 0 and not self.saveModelIn == "":
-        #     self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
-        #     self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
+        if (game + 1) % 5 == 0 and not self.saveModelIn == "":
+            self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
+            self.lastModel = self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5"
 
-
-        print (" -- Epsilon:" + str(self.epsilon) + " - Loss:" + str(history.history['loss']))
+        if self.verbose:
+            print ("-- "+self.name + ": Epsilon:" + str(self.epsilon) + " - Loss:" + str(history.history['loss']))
 
 
     def memorize(self, state, action, reward, next_state, done, possibleActions, newPossibleActions):
