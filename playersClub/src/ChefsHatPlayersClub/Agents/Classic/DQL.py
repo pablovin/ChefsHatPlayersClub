@@ -21,6 +21,8 @@ import sys
 
 import urllib.request
 
+types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
+
 class DQL(IAgent.IAgent):
 
     name="DQL_"

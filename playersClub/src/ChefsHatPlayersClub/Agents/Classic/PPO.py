@@ -39,6 +39,7 @@ def proximal_policy_optimization_loss():
 
 #Adapted from: https://github.com/germain-hug/Deep-RL-Keras
 
+types=["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
 class PPO(IAgent.IAgent):
 

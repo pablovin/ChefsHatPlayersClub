@@ -3,7 +3,7 @@ astunparse==1.6.3
 cachetools==4.2.1
 certifi==2020.12.5
 chardet==4.0.0
-ChefsHatGym==0.1.941
+ChefsHatGym==0.1.942
 cloudpickle==1.6.0
 cycler==0.10.0
 flatbuffers==1.12

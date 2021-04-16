@@ -19,35 +19,19 @@ import os
 import sys
 import urllib
 
+types = ["lil_abcd_","lilAbsol", "lilAle", "lilAna", "lilArkady",
+         "lilAuar", "lilBlio1", "lilBlio2", "lilChu", "lilDa48",
+         "lilDana", "lilDJ", "lilDomi948","lilEle","lilFael",
+         "lilGeo","lilIlzy","lilJba","lilLeandro","lilLena",
+         "lilLordelo","lilMars","lilNathalia","lilNik","lilNilay",
+         "lilRamsey","lilRaos","lilThecube","lilThuran","lilTisantana",
+         "lilToran","lilWinne","lilYves","lilYves2"]
+
+
+
 class AIRL(IAgent.IAgent):
 
     name="AIRL_"
-
-    loadFrom = {"lilAbsol": "Trained/lilAbsol/",
-                "lilAle": "Trained/lilAle/",
-                "lilAuar": "Trained/lilAuar",
-                "lilBlio": "Trained/lilBlio/",
-                "lilChu": "Trained/lilChu/",
-                "lilDa48": "Trained/lilDa48/",
-                "lilDana": "Trained/lilDana",
-                "lilDJ": "Trained/lilDJ/",
-                "lilDomi948": "Trained/lilDomi948",
-                "lilEle": "Trained/lilEle/",
-                "lilFael": "Trained/lilFael/",
-                "lilGeo": "Trained/lilGeo/",
-                "lilJBA": "Trained/lilJBA/",
-                "lilLena": "Trained/lilLena/",
-                "lilLordelo": "Trained/lilLordelo/",
-                "lilMars": "Trained/lilMars/",
-                "lilNathalia": "Trained/lilNathalia/",
-                "lilNik": "Trained/lilNik/",
-                "lilRamsey": "Trained/lilRamsey/",
-                "lilRaos": "Trained/lilRaos/",
-                "lilThecube": "Trained/lilThecube/",
-                "lilThurran": "Trained/lilThurran/",
-                "lilTisantana": "Trained/lilTisantana/",
-                "lilWinne": "Trained/lilWinne/",
-                "lilYves": "Trained/lilYves/"}
 
     downloadFrom = {"lilAbsol": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAbsol.tar.xz",
                     "lilAle": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAle.tar.xz",
@@ -70,7 +54,7 @@ class AIRL(IAgent.IAgent):
                     "lilRamsey": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilRamsey.tar.xz",
                     "lilRaos": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilRaos.tar.xz",
                     "lilThecube": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThecube.tar.xz",
-                    "lilThurran": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThurran.tar.xz",
+                    "lilThuran": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThuran.tar.xz",
                     "lilTisantana": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilTisantana.tar.xz",
                     "lilWinne": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilWinne.tar.xz",
                     "lilYves": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilYves.tar.xz",
@@ -106,7 +90,7 @@ class AIRL(IAgent.IAgent):
                 with tarfile.open(downloadName) as f:
                     f.extractall(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/")
 
-
+            self.demonstrations = fileName+"/"+str(type)+".npy"
             self.loadModel([fileName+"/actor",fileName+"/reward"])
 
         if not loadNetwork == "":
@@ -124,7 +108,7 @@ class AIRL(IAgent.IAgent):
 
         self.hiddenLayers = 1
         self.hiddenUnits = 256
-        self.batchSize = 128
+        self.batchSize = 20
         self.tau = 0.52  # target network update rate
 
         self.gamma = 0.95  # discount rate
@@ -419,12 +403,14 @@ class AIRL(IAgent.IAgent):
         # lossReward = 0.5*(lossReward1+lossReward2)
         # self.losses.append([lossPolicy,lossReward])
 
-        if (game + 1) % 5 == 0 and not self.saveModelIn=="":
-            self.actor.save(self.saveModelIn + "/actor_iteration_" + str(game) + "_Player_"+str(thisPlayer)+".hd5")
+        # print ("Saving:" + str(self.saveModelIn + "/actor"))
+        if  not self.saveModelIn=="":
+            self.actor.save(self.saveModelIn + "/actor")
             self.rewardNetwork.save(
-                self.saveModelIn + "/reward_iteration_" + str(game) + "_Player_" + str(thisPlayer) + ".hd5")
+                self.saveModelIn + "/reward")
+            # print("!!!!!Saved:" + str(self.saveModelIn + "/actor"))
 
-        #
+
         if self.verbose:
             print("-- " + self.name + ": Epsilon:" + str(self.epsilon) + " - Loss Policy: " + str(lossPolicy) + " - Loss Reward: " + str(lossReward))
 
@@ -459,7 +445,6 @@ class AIRL(IAgent.IAgent):
 
 
     def actionUpdate(self, observation, nextObservation, action, reward, info):
-
 
 
         if self.training:

@@ -49,9 +49,9 @@ Implementation of an Adversarial Inverse Reinforcement Learning Agent (AIRL), an
 Types | Types | Types | Types | Types
 ------------ |------------ |------------ | ----------- | ----------- |
 lilAbsol |lilDana |lilJBA |lilRamsey | lilYves | 
-lilAle |lilDJ |liLLena |liLRaos |
+lilAle |lilDJ |lilLena |lilRaos |
 lilAuar |lilDomi948 |lilLordelo |lilThecube |
-lilBlio |lilEle |lilMars |liLThurran |
+lilBlio |lilEle |lilMars |lilThuran |
 lilChu |lilFael |lilNathalia |lilTisantana |
  lilDa48 |lilGeo |lilNik |lilWinne |
 
