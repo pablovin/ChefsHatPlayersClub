@@ -16,7 +16,8 @@ gameStopCriteria = 10
 
 """Player Parameters"""
 agent1 = Agent_Naive_Random.AgentNaive_Random("Random1")
-agent2 = AIRL.AIRL(name="AIRL", continueTraining=True, type="lilDJ", initialEpsilon=1, verbose=True)  # training agent
+"lilLordelo"
+agent2 = AIRL.AIRL(name="AIRL", continueTraining=True, type="lilBlio1", initialEpsilon=1, verbose=True)  # training agent
 agent3 = PPO.PPO(name="PPO3", continueTraining=False, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
 agent4 = DQL.DQL(name="DQL4", continueTraining=False, type="vsEveryone", initialEpsilon=1, verbose=True)  # training agent
 agentNames = [agent1.name, agent2.name, agent3.name, agent4.name]

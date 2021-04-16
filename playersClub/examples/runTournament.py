@@ -20,8 +20,9 @@ def getAllAgents(compType):
 
 
     for type in AIRL.types:
-        print ("Type:" + str(type))
-        agents.append(AIRL.AIRL(name=str(compType), continueTraining=False, type=type, initialEpsilon=1, verbose=True) )
+        for learning in (True, False):
+            print ("Type:" + str(type))
+            agents.append(AIRL.AIRL(name=str(compType)+"_L_"+str(learning), continueTraining=learning, type=type, initialEpsilon=1, verbose=True) )
 
 
 

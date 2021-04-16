@@ -46,14 +46,19 @@ verbose | verbose when learning
 
 Implementation of an Adversarial Inverse Reinforcement Learning Agent (AIRL), and instances of trained agents based on human data collected from Chef's Hat Online.
 
+
+
+
+
 Types | Types | Types | Types | Types
 ------------ |------------ |------------ | ----------- | ----------- |
-lilAbsol |lilDana |lilJBA |lilRamsey | lilYves | 
-lilAle |lilDJ |lilLena |lilRaos |
-lilAuar |lilDomi948 |lilLordelo |lilThecube |
-lilBlio |lilEle |lilMars |lilThuran |
-lilChu |lilFael |lilNathalia |lilTisantana |
- lilDa48 |lilGeo |lilNik |lilWinne |
+	lil_abcd_|lilAbsol| lilAle| lilAna| lilArkady|
+         lilAuar| lilBlio1| lilBlio2| lilChu| lilDa48|
+         lilDana| lilDJ| lilDomi948|lilEle|lilFael|
+         lilGeo|lilIlzy|lilJba|lilLeandro|lilLena|
+         lilLordelo|lilMars|lilNathalia|lilNik|lilNilay|
+         lilRamsey|lilRaos|lilThecube|lilThuran|lilTisantana|
+         lilToran|lilWinne|lilYves|lilYves2
 
 
 Each agent can be instantiated using:

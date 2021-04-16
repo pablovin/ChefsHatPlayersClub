@@ -33,33 +33,7 @@ class AIRL(IAgent.IAgent):
 
     name="AIRL_"
 
-    downloadFrom = {"lilAbsol": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAbsol.tar.xz",
-                    "lilAle": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAle.tar.xz",
-                    "lilAuar":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilAuar.tar.xz",
-                    "lilBlio":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilBlio.tar.xz",
-                    "lilChu": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilChu.tar.xz",
-                    "lilDa48": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDa48.tar.xz",
-                    "lilDana": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDana.tar.xz",
-                    "lilDJ": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDJ.tar.xz",
-                    "lilDomi948": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilDomi948.tar.xz",
-                    "lilEle": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilEle.tar.xz",
-                    "lilFael": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilFael.tar.xz",
-                    "lilGeo": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilGeo.tar.xz",
-                    "lilJBA": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilJBA.tar.xz",
-                    "lilLena": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilLena.tar.xz",
-                    "lilLordelo": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilLordelo.tar.xz",
-                    "lilMars": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilMars.tar.xz",
-                    "lilNathalia": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilNathalia.tar.xz",
-                    "lilNik": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilNik.tar.xz",
-                    "lilRamsey": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilRamsey.tar.xz",
-                    "lilRaos": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilRaos.tar.xz",
-                    "lilThecube": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThecube.tar.xz",
-                    "lilThuran": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilThuran.tar.xz",
-                    "lilTisantana": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilTisantana.tar.xz",
-                    "lilWinne": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilWinne.tar.xz",
-                    "lilYves": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/lilYves.tar.xz",
-                     }
-
+    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/"
 
     def __init__(self, name, continueTraining, demonstrations="", type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
         self.training = continueTraining
@@ -70,34 +44,44 @@ class AIRL(IAgent.IAgent):
 
         self.verbose = verbose
 
-        if not demonstrations == "":
-            self.demonstrations = numpy.load(demonstrations, allow_pickle=True)
-        else:
-            self.demonstrations = None
+        self.demonstrations = None
         self.startAgent()
 
+
         if not type == "Scratch":
-            fileName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + self.loadFrom[type]
+            fileName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"+type
 
 
             if not os.path.exists(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"):
                 os.makedirs(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/")
 
             if not os.path.exists(fileName):
-                downloadName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"+"/"+self.downloadFrom[type].split("/")[-1]
-                urllib.request.urlretrieve(self.downloadFrom[type], downloadName)
+                getFrom = self.downloadFrom+"/"+type+".tar.xz"
+                downloadName = os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/"+type+".tar.xz"
+                urllib.request.urlretrieve(getFrom, downloadName)
 
                 with tarfile.open(downloadName) as f:
                     f.extractall(os.path.abspath(sys.modules[AIRL.__module__].__file__)[0:-7] + "/Trained/")
 
-            self.demonstrations = fileName+"/"+str(type)+".npy"
+            self.demonstrations =  numpy.load(fileName+"/"+str(type)+".npy", allow_pickle=True)
+            self.updateDemonstrations()
             self.loadModel([fileName+"/actor",fileName+"/reward"])
+
+
+
+        if not demonstrations == "":
+            self.demonstrations = numpy.load(demonstrations, allow_pickle=True)
+            self.updateDemonstrations()
 
         if not loadNetwork == "":
             self.loadModel(loadNetwork)
 
 
-
+    def updateDemonstrations(self):
+        if not self.demonstrations == None:
+            while self.demonstrations.shape[0] < self.batchSize:
+                random.shuffle(self.demonstrations)
+                self.demonstrations = numpy.append(self.demonstrations,numpy.expand_dims(self.demonstrations[0],0), axis=0)
 
     def startAgent(self):
         numMaxCards, numCardsPerPlayer, actionNumber, loadModel, agentParams = 11, 28, 200, "", []
@@ -120,14 +104,7 @@ class AIRL(IAgent.IAgent):
 
         #Update the demonstrations side
 
-        # print ("Shape:"+ str(self.demonstrations.shape))
 
-        if not self.demonstrations ==None:
-            while self.demonstrations.shape[0] < self.batchSize:
-                random.shuffle(self.demonstrations)
-                self.demonstrations = numpy.append(self.demonstrations,numpy.expand_dims(self.demonstrations[0],0), axis=0)
-
-        # print ("Shape:"+ str(self.demonstrations.shape))
         # input("here")
         if self.training:
             self.epsilon = self.initialEpsilon  # exploration rate while training
@@ -327,10 +304,10 @@ class AIRL(IAgent.IAgent):
         # Sample experience from memory buffer (optionally with PER)
         s, a, r, d, new_s, possibleActions, newPossibleActions, idx = self.memory.sample_batch(self.batchSize)
 
-
         batchIndex = numpy.array(range(len(self.demonstrations)))
         random.shuffle(batchIndex)
         batchIndex = batchIndex[0:self.batchSize]
+
 
 
         d_s = self.demonstrations[batchIndex,0]
@@ -347,6 +324,10 @@ class AIRL(IAgent.IAgent):
         lossReward1 = self.combined.train_on_batch([s,possibleActions], numpy.ones(self.batchSize))
 
         #Train on demonstrator data
+
+
+
+
         d_action = numpy.zeros((self.batchSize,200))
         for x in range(self.batchSize):
             d_action[x][d_a[x]] = 1
