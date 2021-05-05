@@ -1,7 +1,7 @@
 ## Chef's Hat Players Club
 The Chef's Hat Player club provides ready-to-use agents for the Chef's Hat game.
 
-## Instaltion
+## Instalation
 
 The instalation can be done via pip:
 
