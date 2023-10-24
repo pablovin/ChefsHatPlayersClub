@@ -1,6 +1,9 @@
 #Adapted from: https://github.com/LuEE-C/PPO-Keras/blob/master/Main.py
 
-from ChefsHatGym.Agents import IAgent
+from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
+
+
 import numpy
 import copy
 
@@ -41,9 +44,9 @@ def proximal_policy_optimization_loss():
 
 types=["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
-class PPO(IAgent.IAgent):
+class AgentPPO(ChefsHatAgent):
 
-    name = "PPO_"
+    name = "PPO"
     actor = None
     training = False
 
@@ -60,24 +63,31 @@ class PPO(IAgent.IAgent):
 
 
 
-    def __init__(self,name, continueTraining=False, type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
-        self.training = continueTraining
-        self.initialEpsilon = initialEpsilon
-        self.name += type + "_" + name
-        self.loadNetwork = loadNetwork
-        self.saveModelIn = saveFolder
-        self.verbose = verbose
+    def __init__(self,name, continueTraining=False, agentType="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="",  verbose=False, logDirectory=""):
 
-        self.type = type
-        self.reward = RewardOnlyWinning.RewardOnlyWinning()
+        super().__init__(
+            self.suffix,
+            agentType+"_"+name,
+            saveFolder,
+        )
+                
+        self.training = continueTraining
+        self.initialEpsilon = initialEpsilon        
+        self.loadNetwork = loadNetwork      
+
+        if verbose:
+               self.startLogging(logDirectory)  
+
+        self.type = agentType
+        self.reward = RewardOnlyWinning()
 
         self.startAgent()
 
         if not type == "Scratch":
-            fileNameActor = os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + self.loadFrom[type][0]
-            fileNameCritic = os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + self.loadFrom[type][1]
-            if not os.path.exists(os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + "/Trained/"):
-                os.mkdir(os.path.abspath(sys.modules[PPO.__module__].__file__)[0:-6] + "/Trained/")
+            fileNameActor = os.path.join(os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6], self.loadFrom[agentType][0])
+            fileNameCritic = os.path.join(os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6],  self.loadFrom[agentType][1])
+            if not os.path.exists(os.path.join(os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6], "Trained")):
+                os.mkdir(os.path.abspath(os.path.join(sys.modules[AgentPPO.__module__].__file__)[0:-6], "Trained"))
 
             if not os.path.exists(fileNameCritic):
                 urllib.request.urlretrieve(self.downloadFrom[type][0], fileNameActor)
@@ -89,7 +99,7 @@ class PPO(IAgent.IAgent):
             self.loadModel(loadNetwork)
 
 
-
+    #PPO Functions
     def startAgent(self):
 
         self.hiddenLayers = 2
@@ -138,14 +148,6 @@ class PPO(IAgent.IAgent):
                       loss=[proximal_policy_optimization_loss()])
 
 
-    def getReward(self, info, stateBefore, stateAfter):
-
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
-
-        return self.reward.getReward(thisPlayer, matchFinished)
-
-
 
     def buildCriticNetwork(self):
 
@@ -174,25 +176,7 @@ class PPO(IAgent.IAgent):
        self.buildCriticNetwork()
        self.buildActorNetwork()
 
-    def getAction(self, observations):
-
-        stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
-        possibleActions = observations[28:]
-
-        stateVector = numpy.expand_dims(numpy.array(stateVector), 0)
-        possibleActions2 = copy.copy(possibleActions)
-
-        if numpy.random.rand() <= self.epsilon:
-            itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
-            random.shuffle(itemindex)
-            aIndex = itemindex[0]
-            a = numpy.zeros(200)
-            a[aIndex] = 1
-        else:
-            possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.actor.predict([stateVector, possibleActionsVector])[0]
-
-        return a
+   
 
 
 
@@ -274,6 +258,36 @@ class PPO(IAgent.IAgent):
         self.rewards = []
         self.possibleActions = []
         self.realEncoding = []
+
+    #Agent Chefs Hat Functions
+
+    def get_reward(self, info):
+
+        thisPlayer = info["thisPlayerPosition"]
+        matchFinished = info["thisPlayerFinished"]
+
+        return self.reward.getReward(thisPlayer, matchFinished)
+
+    def get_action(self, observations):
+
+        stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
+        possibleActions = observations[28:]
+
+        stateVector = numpy.expand_dims(numpy.array(stateVector), 0)
+        possibleActions2 = copy.copy(possibleActions)
+
+        if numpy.random.rand() <= self.epsilon:
+            itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
+            random.shuffle(itemindex)
+            aIndex = itemindex[0]
+            a = numpy.zeros(200)
+            a[aIndex] = 1
+        else:
+            possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
+            a = self.actor.predict([stateVector, possibleActionsVector])[0]
+
+        return a
+
 
     def matchUpdate(self, info):
 

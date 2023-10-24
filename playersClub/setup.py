@@ -18,8 +18,8 @@ DESCRIPTION = """A collection of ready-to-use agents for the Chef's Hat Gym Envi
 URL = "https://github.com/pablovin/ChefsHatPlayersClub"
 EMAIL = "pablovin@gmail.com"
 AUTHOR = "Pablo Barros"
-REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.0.322995"
+REQUIRES_PYTHON = ">=3.10.0"
+VERSION = "2.0.0"
 
 # What packages are required for this module to be executed?
 with open("Requirements.txt") as requirements:
@@ -124,7 +124,7 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Games/Entertainment :: Simulation",
         "Topic :: Games/Entertainment :: Turn Based Strategy",

@@ -1,31 +1,27 @@
-from ChefsHatGym.Agents import IAgent
-import numpy
-import copy
+from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
+
+from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
 from keras.layers import Input, Dense, Lambda, Multiply
 import keras.backend as K
-
 from keras.models import Model
 from keras.optimizers import Adam
-
 from keras.models import load_model
-
-from ChefsHatPlayersClub.Agents.Util import MemoryBuffer
-
-import random
-
-from ChefsHatGym.Rewards import RewardOnlyWinning
 
 import os
 import sys
-
 import urllib.request
+import random
+import numpy
+import copy
+
 
 types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
-class DQL(IAgent.IAgent):
+class AgentDQL(ChefsHatAgent):
 
-    name="DQL_"
+    suffix="DQL"
     actor = None
     training = False
 
@@ -33,46 +29,49 @@ class DQL(IAgent.IAgent):
     loadFrom = {"vsRandom":"Trained/dql_vsRandom.hd5",
             "vsEveryone":"Trained/dql_vsEveryone.hd5",
                 "vsSelf":"Trained/dql_vsSelf.hd5",}
+    
     downloadFrom = {"vsRandom":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5",
             "vsEveryone":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsEveryone.hd5",
                 "vsSelf":"https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsSelf.hd5",}
 
-    def __init__(self, name, continueTraining=False, type="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False):
+    def __init__(self, name, continueTraining=False, agentType="Scratch", initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False, logDirectory=""):
+
+        super().__init__(
+            self.suffix,
+            agentType+"_"+name,
+            saveFolder,
+        )
+         
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
-        self.name += type+"_"+name
-        self.loadNetwork = loadNetwork
-        self.saveModelIn = saveFolder
+        
+        self.loadNetwork = loadNetwork     
+
+        if verbose:
+               self.startLogging(logDirectory)
+
         self.verbose = verbose
 
-        self.type = type
-        self.reward = RewardOnlyWinning.RewardOnlyWinning()
+        self.type = agentType
+        self.reward = RewardOnlyWinning()
 
         self.startAgent()
-
-
+        
         if not type=="Scratch":
-            fileName = os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+self.loadFrom[type]
-            if not os.path.exists(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/Trained/"):
-                os.mkdir(os.path.abspath(sys.modules[DQL.__module__].__file__)[0:-6]+"/Trained/")
+            fileName = os.path.join(os.path.abspath(sys.modules[AgentDQL.__module__].__file__)[0:-6],self.loadFrom[agentType])
+
+            if not os.path.exists(os.path.join(os.path.abspath(sys.modules[AgentDQL.__module__].__file__)[0:-6], "Trained")):
+                os.mkdir(os.path.join(os.path.abspath(sys.modules[AgentDQL.__module__].__file__)[0:-6],"Trained"))
 
             if not os.path.exists(fileName):
-                urllib.request.urlretrieve(self.downloadFrom[type], fileName)
-            # fileName = "/home/pablo/Documents/Workspace/ChefsHatPlayersClub/venv/lib/python3.6/site-packages/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5"
+                urllib.request.urlretrieve(self.downloadFrom[type], fileName)            
             self.loadModel(fileName)
 
         if not loadNetwork =="":
             self.loadModel(loadNetwork)
 
 
-    def getReward(self, info, stateBefore, stateAfter):
-
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
-
-        return self.reward.getReward(thisPlayer, matchFinished)
-
-
+    # DQL Functions
     def startAgent(self):
 
         self.hiddenLayers = 1
@@ -86,7 +85,6 @@ class DQL(IAgent.IAgent):
         self.epsilon_min = 0.1
         self.epsilon_decay = 0.990
 
-
         # self.tau = 0.1 #target network update rate
 
         if self.training:
@@ -99,22 +97,20 @@ class DQL(IAgent.IAgent):
         self.dueling = False
 
         QSize = 20000
-        self.memory = MemoryBuffer.MemoryBuffer(QSize, self.prioritized_experience_replay)
+        self.memory = MemoryBuffer(QSize, self.prioritized_experience_replay)
 
         # self.learning_rate = 0.01
         self.learning_rate = 0.001
 
         self.buildModel()
 
-
-
     def buildModel(self):
 
           self.buildSimpleModel()
 
-          self.actor.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
+          self.actor.compile(loss=self.loss, optimizer=Adam(learning_rate=self.learning_rate), metrics=["mse"])
 
-          self.targetNetwork.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
+          self.targetNetwork.compile(loss=self.loss, optimizer=Adam(learning_rate=self.learning_rate), metrics=["mse"])
 
 
     def buildSimpleModel(self):
@@ -157,30 +153,7 @@ class DQL(IAgent.IAgent):
 
         self.actor = model()
         self.targetNetwork =  model()
-
-    def getAction(self, observations):
-
-        stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
-        possibleActions = observations[28:]
-
-        stateVector = numpy.expand_dims(stateVector, 0)
-        possibleActions = numpy.array(possibleActions)
-
-        possibleActions2 = copy.copy(possibleActions)
-
-        if numpy.random.rand() <= self.epsilon:
-            itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
-            random.shuffle(itemindex)
-            aIndex = itemindex[0]
-            a = numpy.zeros(200)
-            a[aIndex] = 1
-
-        else:
-
-            possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.actor.predict([stateVector, possibleActionsVector])[0]
-
-        return a
+   
 
     def loadModel(self, model):
 
@@ -251,10 +224,57 @@ class DQL(IAgent.IAgent):
         self.memory.memorize(state, action, reward, done, next_state, possibleActions, newPossibleActions, td_error)
 
 
+    #Agent Chefs Hat Functions
+    
+    def get_exhanged_cards(self, cards, amount):
+        selectedCards = sorted(cards[-amount:])
+        return selectedCards
 
-    def actionUpdate(self, observation, nextObservation, action, reward, info):
+    def do_special_action(self, info, specialAction):
+        return True
 
+    def get_action(self, observations):
+
+        stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
+        possibleActions = observations[28:]
+
+        stateVector = numpy.expand_dims(stateVector, 0)
+        possibleActions = numpy.array(possibleActions)
+
+        possibleActions2 = copy.copy(possibleActions)
+
+        if numpy.random.rand() <= self.epsilon:
+            itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[0].tolist()
+            random.shuffle(itemindex)
+            aIndex = itemindex[0]
+            a = numpy.zeros(200)
+            a[aIndex] = 1
+
+        else:
+
+            possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
+            a = self.actor.predict([stateVector, possibleActionsVector])[0]
+
+        return a
+    
+    def get_reward(self, info):
+
+        thisPlayer = info["thisPlayerPosition"]
+        matchFinished = info["thisPlayerFinished"]
+
+        return self.reward.getReward(thisPlayer, matchFinished)
+
+
+    def update_my_action(self, info):
+        
         if self.training:
+
+            action = info["action"]
+            observation = info["observation"]
+            nextObservation = info["nextObservation"]
+
+            reward = self.get_reward(info)
+
             done = info["thisPlayerFinished"]
 
             state = numpy.concatenate((observation[0:11], observation[11:28]))
@@ -267,7 +287,7 @@ class DQL(IAgent.IAgent):
             self.memorize(state, action, reward, next_state, done, possibleActions, newPossibleActions)
 
 
-    def matchUpdate(self, info):
+    def update_end_match(self, info):
 
         if self.training:
             rounds = info["rounds"]
