@@ -4,6 +4,8 @@ from ChefsHatGym.agents.agent_random import AgentRandon
 from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
+from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.allin import ALLIN
+from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
 
 # Room parameters
 room_name = "Testing_1_Local"
@@ -25,23 +27,32 @@ room = ChefsHatRoomLocal(
     verbose=verbose,
 )
 
-
 # Create the players
 logDirectory = room.get_log_directory()
 agentVerbose = True
-p1 = AgentPPO(
+
+p1 = AMYG4(
     name="01",
     continueTraining=False,
-    agentType="vsRandom",
     initialEpsilon=0.2,
     loadNetwork="",
     saveFolder="",
     verbose=True,
     logDirectory=logDirectory,
 )
-p2 = AgentDQL(
+p2 = ALLIN(
     name="02",
     continueTraining=False,
+    initialEpsilon=0.2,
+    loadNetwork="",
+    saveFolder="",
+    verbose=True,
+    logDirectory=logDirectory,
+)
+
+p3 = AgentDQL(
+    name="03",
+    continueTraining=False,
     agentType="vsRandom",
     initialEpsilon=0.2,
     loadNetwork="",
@@ -50,24 +61,21 @@ p2 = AgentDQL(
     logDirectory=logDirectory,
 )
 
-p3 = AgentAIRL(
-    name="03",
+p4 = AgentPPO(
+    "04",
     continueTraining=False,
-    agentType="lil_abcd_",
-    initialEpsilon=0.2,
+    demonstrations="",
+    agentType="vsRandom",
+    initialEpsilon=1,
     loadNetwork="",
     saveFolder="",
-    verbose=True,
-    logDirectory=logDirectory,
+    verbose=False,
+    logDirectory="",
 )
-
-
-p4 = AgentRandon(name="04", savelogDirectory=logDirectory, verbose=agentVerbose)
 
 # Adding players to the room
 for p in [p1, p2, p3, p4]:
     room.add_player(p)
-
 
 # Start the game
 info = room.start_new_game(game_verbose=True)
