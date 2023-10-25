@@ -30,18 +30,8 @@ p2 = AgentPPO(
     verbose=False,
     logDirectory="",
 )
-
-p3 = AINSA(
-    name="03",
-    continueTraining=False,
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
-)
-
 p4 = AIACIMP(
-    "04",
+    "03",
     continueTraining=False,
     demonstrations="",
     initialEpsilon=1,
@@ -50,6 +40,17 @@ p4 = AIACIMP(
     verbose=False,
     logDirectory="",
 )
+
+
+p4 = AINSA(
+    name="04",
+    continueTraining=False,
+    initialEpsilon=0.2,
+    loadNetwork="",
+    saveFolder="",
+    verbose=True,
+)
+
 
 # Clean all the rooms
 r = redis.Redis()

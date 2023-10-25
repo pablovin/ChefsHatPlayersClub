@@ -14,10 +14,13 @@ import os
 import sys
 import numpy
 import copy
+import urllib
 
 
 class ALLIN(ChefsHatAgent):
     suffix = "ALLIN"
+
+    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/tree/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/ALLIN/"
 
     def __init__(
         self,
@@ -55,6 +58,12 @@ class ALLIN(ChefsHatAgent):
         self.beforeScore = 0
 
         fileNameDataSource = os.path.join(fileName, "Datasource", "data.npy")
+        if not os.path.exists(fileNameDataSource):
+            getFrom = os.path.join(self.downloadFrom, "Datasource", "data.npy")
+            downloadName = os.path.join(
+                os.path.abspathfileName, "Datasource", "data.npy"
+            )
+            urllib.request.urlretrieve(getFrom, downloadName)
         np_load = numpy.load(fileNameDataSource, allow_pickle=True)
 
         if continueTraining:

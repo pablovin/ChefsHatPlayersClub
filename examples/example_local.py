@@ -3,7 +3,6 @@ from ChefsHatGym.env import ChefsHatEnv
 from ChefsHatGym.agents.agent_random import AgentRandon
 from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
-from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
 from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.allin import ALLIN
 from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
 
@@ -31,7 +30,7 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-p1 = AMYG4(
+p1 = ALLIN(
     name="01",
     continueTraining=False,
     initialEpsilon=0.2,
@@ -40,7 +39,7 @@ p1 = AMYG4(
     verbose=True,
     logDirectory=logDirectory,
 )
-p2 = ALLIN(
+p2 = AMYG4(
     name="02",
     continueTraining=False,
     initialEpsilon=0.2,

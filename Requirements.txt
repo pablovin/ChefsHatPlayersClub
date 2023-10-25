@@ -1,4 +1,4 @@
-chefshatgym==2.0.4
+chefshatgym
 keras==2.14.0
 numpy==1.26.1
 redis==5.0.1
