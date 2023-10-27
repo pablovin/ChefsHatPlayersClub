@@ -59,11 +59,20 @@ class AIACIMP(ChefsHatAgent):
 
         fileNameDataSource = os.path.join(fileName, "Datasource", "data.npy")
         if not os.path.exists(fileNameDataSource):
+            
             getFrom = os.path.join(self.downloadFrom, "Datasource", "data.npy")
             downloadName = os.path.join(
                 os.path.abspathfileName, "Datasource", "data.npy"
             )
             urllib.request.urlretrieve(getFrom, downloadName)
+
+              getFrom = os.path.join(self.downloadFrom, "Datasource", "data.npy")
+            downloadName = os.path.join(
+                os.path.abspathfileName, "Datasource", "data.npy"
+            )
+            urllib.request.urlretrieve(getFrom, downloadName)
+
+
 
         np_load = numpy.load(fileNameDataSource, allow_pickle=True)
 

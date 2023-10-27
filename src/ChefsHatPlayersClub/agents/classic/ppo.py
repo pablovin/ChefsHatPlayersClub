@@ -64,16 +64,16 @@ class AgentPPO(ChefsHatAgent):
 
     downloadFrom = {
         "vsRandom": [
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsRandom.hd5",
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsRandom.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_actor_vsRandom.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_critic_vsRandom.hd5",
         ],
         "vsEveryone": [
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsEveryone.hd5",
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsEveryone.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_actor_vsEveryone.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_critic_vsEveryone.hd5",
         ],
         "vsSelf": [
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_actor_vsSelf.hd5",
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/ppo_critic_vsSelf.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_actor_vsSelf.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_critic_vsSelf.hd5",
         ],
     }
 
@@ -129,8 +129,8 @@ class AgentPPO(ChefsHatAgent):
                 )
 
             if not os.path.exists(fileNameCritic):
-                urllib.request.urlretrieve(self.downloadFrom[type][0], fileNameActor)
-                urllib.request.urlretrieve(self.downloadFrom[type][1], fileNameCritic)
+                urllib.request.urlretrieve(self.downloadFrom[agentType][0], fileNameActor)
+                urllib.request.urlretrieve(self.downloadFrom[agentType][1], fileNameCritic)
 
             self.loadModel([fileNameActor, fileNameCritic])
 

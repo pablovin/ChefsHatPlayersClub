@@ -58,7 +58,7 @@ types = [
 class AgentAIRL(ChefsHatAgent):
     suffix = "AIRL"
 
-    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/KarmaChameleonClub/Trained/"
+    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/karma_camaleon_club/Trained/"
 
     def __init__(
         self,

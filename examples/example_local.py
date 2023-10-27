@@ -3,8 +3,10 @@ from ChefsHatGym.env import ChefsHatEnv
 from ChefsHatGym.agents.agent_random import AgentRandon
 from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
-from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.allin import ALLIN
-from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
+from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
+
+# from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.allin import ALLIN
+# from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
 
 # Room parameters
 room_name = "Testing_1_Local"
@@ -30,18 +32,10 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-p1 = ALLIN(
+p1 = AgentDQL(
     name="01",
     continueTraining=False,
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
-    logDirectory=logDirectory,
-)
-p2 = AMYG4(
-    name="02",
-    continueTraining=False,
+    agentType="vsRandom",
     initialEpsilon=0.2,
     loadNetwork="",
     saveFolder="",
@@ -49,10 +43,20 @@ p2 = AMYG4(
     logDirectory=logDirectory,
 )
 
+p2 = AgentPPO(
+    "02",
+    continueTraining=False,
+    agentType="vsRandom",
+    initialEpsilon=1,
+    loadNetwork="",
+    saveFolder="",
+    verbose=False,
+    logDirectory="",
+)
 p3 = AgentDQL(
     name="03",
     continueTraining=False,
-    agentType="vsRandom",
+    agentType="vsEveryone",
     initialEpsilon=0.2,
     loadNetwork="",
     saveFolder="",
@@ -60,11 +64,10 @@ p3 = AgentDQL(
     logDirectory=logDirectory,
 )
 
-p4 = AgentPPO(
+p4 = AgentAIRL(
     "04",
     continueTraining=False,
-    demonstrations="",
-    agentType="vsRandom",
+    agentType="lilAle",
     initialEpsilon=1,
     loadNetwork="",
     saveFolder="",

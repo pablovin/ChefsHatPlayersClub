@@ -32,9 +32,9 @@ class AgentDQL(ChefsHatAgent):
     }
 
     downloadFrom = {
-        "vsRandom": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsRandom.hd5",
-        "vsEveryone": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsEveryone.hd5",
-        "vsSelf": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/playersClub/src/ChefsHatPlayersClub/Agents/Classic/Trained/dql_vsSelf.hd5",
+        "vsRandom": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/dql_vsRandom.hd5",
+        "vsEveryone": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/dql_vsEveryone.hd5",
+        "vsSelf": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/dql_vsSelf.hd5",
     }
 
     def __init__(
@@ -91,7 +91,10 @@ class AgentDQL(ChefsHatAgent):
                 )
 
             if not os.path.exists(fileName):
-                urllib.request.urlretrieve(self.downloadFrom[type], fileName)
+                urlToDownload = self.downloadFrom[agentType]
+                saveIn = fileName
+                print (f"URL Download: {urlToDownload}")
+                urllib.request.urlretrieve(self.downloadFrom[agentType], fileName)
             self.loadModel(fileName)
 
         if not loadNetwork == "":
