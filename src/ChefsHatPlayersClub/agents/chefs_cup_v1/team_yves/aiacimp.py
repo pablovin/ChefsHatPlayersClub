@@ -84,7 +84,7 @@ class AIACIMP(ChefsHatAgent):
             
 
 
-        np_load = numpy.load(os.path.join(downloadFolder, "Datasource", "data.npy"), allow_pickle=True)
+        np_load = numpy.load(os.path.join(downloadFolder, "AIACIMP","Datasource", "data.npy"), allow_pickle=True)
 
         if continueTraining:
             self.demonstrations = np_load
@@ -94,8 +94,8 @@ class AIACIMP(ChefsHatAgent):
             fileNameModelActor = os.path.join(loadNetwork, "actor")
             fileNameModelReward = os.path.join(loadNetwork, "reward")
         else:
-            fileNameModelActor = os.path.join(downloadFolder, "actor")
-            fileNameModelReward = os.path.join(downloadFolder, "reward")
+            fileNameModelActor = os.path.join(downloadFolder, "AIACIMP", "actor")
+            fileNameModelReward = os.path.join(downloadFolder,  "AIACIMP", "reward")
 
         self.loadModel([fileNameModelActor, fileNameModelReward])
 

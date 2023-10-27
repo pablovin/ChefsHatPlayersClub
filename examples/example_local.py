@@ -4,9 +4,8 @@ from ChefsHatGym.agents.agent_random import AgentRandon
 from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
-
 from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.aiacimp import AIACIMP
-# from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
+
 
 # Room parameters
 room_name = "Testing_1_Local"

@@ -13,10 +13,14 @@ import sys
 import tensorflow as tf
 import numpy
 import copy
+import urllib
+import tarfile
 
 
 class AMYG4(ChefsHatAgent):
     suffix = "AMYG4"
+    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AMYG4.tar"
+
 
     def __init__(
         self,
@@ -53,8 +57,26 @@ class AMYG4(ChefsHatAgent):
         self.beforeInfo = None
         self.beforeScore = 0
 
-        fileNameDataSource = os.path.join(fileName, "Datasource", "data.npy")
-        np_load = numpy.load(fileNameDataSource, allow_pickle=True)
+        
+        downloadFolder = os.path.join(fileName)
+
+        if not os.path.exists(downloadFolder):
+
+            os.makedirs(downloadFolder)
+
+            getFrom = os.path.join(self.downloadFrom)
+
+            downloadName = os.path.join(
+                downloadFolder, "allin.zip"
+            )
+            urllib.request.urlretrieve(getFrom, downloadName)
+
+            with tarfile.open(downloadName) as f:
+                    f.extractall(
+                        downloadFolder
+                    )
+
+        np_load = numpy.load(os.path.join(downloadFolder, "AMYG4","Datasource", "data.npy"), allow_pickle=True)
 
         if continueTraining:
             self.demonstrations = np_load
@@ -64,8 +86,8 @@ class AMYG4(ChefsHatAgent):
             fileNameModelActor = os.path.join(loadNetwork, "actor")
             fileNameModelReward = os.path.join(loadNetwork, "reward")
         else:
-            fileNameModelActor = os.path.join(fileName, "actor")
-            fileNameModelReward = os.path.join(fileName, "reward")
+            fileNameModelActor = os.path.join(fileName, "AMYG4","actor")
+            fileNameModelReward = os.path.join(fileName, "AMYG4","reward")
 
         self.loadModel([fileNameModelActor, fileNameModelReward])
 
