@@ -5,7 +5,7 @@ from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
 
-# from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.allin import ALLIN
+from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.aiacimp import AIACIMP
 # from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.amyg4 import AMYG4
 
 # Room parameters
@@ -32,10 +32,10 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-p1 = AgentDQL(
+p1 = AIACIMP(
     name="01",
     continueTraining=False,
-    agentType="vsRandom",
+    demonstrations="",
     initialEpsilon=0.2,
     loadNetwork="",
     saveFolder="",

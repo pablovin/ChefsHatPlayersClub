@@ -14,12 +14,14 @@ import os
 import sys
 import tensorflow as tf
 import urllib
-
-downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/tree/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AIACIMP/"
+import tarfile
 
 
 class AIACIMP(ChefsHatAgent):
     suffix = "AIACIMP"
+    downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AIACIMP.tar"
+
+
 
     def __init__(
         self,
@@ -57,24 +59,32 @@ class AIACIMP(ChefsHatAgent):
         self.beforeInfo = None
         self.beforeScore = 0
 
-        fileNameDataSource = os.path.join(fileName, "Datasource", "data.npy")
-        if not os.path.exists(fileNameDataSource):
+        downloadFolder = os.path.join(fileName)
+        print (f"Looking for folder: {downloadFolder}")
+
+
+        if not os.path.exists(downloadFolder):
+
+            os.makedirs(downloadFolder)
+
+
             
-            getFrom = os.path.join(self.downloadFrom, "Datasource", "data.npy")
+            getFrom = os.path.join(self.downloadFrom)
+
             downloadName = os.path.join(
-                os.path.abspathfileName, "Datasource", "data.npy"
+                downloadFolder, "aiacimp.zip"
             )
             urllib.request.urlretrieve(getFrom, downloadName)
 
-              getFrom = os.path.join(self.downloadFrom, "Datasource", "data.npy")
-            downloadName = os.path.join(
-                os.path.abspathfileName, "Datasource", "data.npy"
-            )
-            urllib.request.urlretrieve(getFrom, downloadName)
+            with tarfile.open(downloadName) as f:
+                    f.extractall(
+                        downloadFolder
+                    )
+
+            
 
 
-
-        np_load = numpy.load(fileNameDataSource, allow_pickle=True)
+        np_load = numpy.load(os.path.join(downloadFolder, "Datasource", "data.npy"), allow_pickle=True)
 
         if continueTraining:
             self.demonstrations = np_load
@@ -84,8 +94,8 @@ class AIACIMP(ChefsHatAgent):
             fileNameModelActor = os.path.join(loadNetwork, "actor")
             fileNameModelReward = os.path.join(loadNetwork, "reward")
         else:
-            fileNameModelActor = os.path.join(fileName, "actor")
-            fileNameModelReward = os.path.join(fileName, "reward")
+            fileNameModelActor = os.path.join(downloadFolder, "actor")
+            fileNameModelReward = os.path.join(downloadFolder, "reward")
 
         self.loadModel([fileNameModelActor, fileNameModelReward])
 
