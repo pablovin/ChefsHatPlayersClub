@@ -122,10 +122,10 @@ class AgentPPO(ChefsHatAgent):
                 )
             ):
                 os.mkdir(
-                    os.path.abspath(
-                        os.path.join(sys.modules[AgentPPO.__module__].__file__)[0:-6],
-                        "Trained",
-                    )
+                    os.path.join(
+                    os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6],
+                    "Trained",
+                )
                 )
 
             if not os.path.exists(fileNameCritic):

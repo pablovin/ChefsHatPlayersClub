@@ -61,7 +61,7 @@ class ALLIN(ChefsHatAgent):
         
         downloadFolder = os.path.join(fileName)
 
-        if not os.path.exists(downloadFolder):
+        if not os.path.exists(os.path.join(downloadFolder, "ALLIN","Datasource", "data.npy")):
 
             os.makedirs(downloadFolder)
 

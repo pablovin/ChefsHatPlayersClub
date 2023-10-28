@@ -60,7 +60,7 @@ class AMYG4(ChefsHatAgent):
         
         downloadFolder = os.path.join(fileName)
 
-        if not os.path.exists(downloadFolder):
+        if not os.path.exists(os.path.join(downloadFolder, "AMYG4","Datasource", "data.npy")):
 
             os.makedirs(downloadFolder)
 

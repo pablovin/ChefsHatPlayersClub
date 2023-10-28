@@ -60,10 +60,8 @@ class AIACIMP(ChefsHatAgent):
         self.beforeScore = 0
 
         downloadFolder = os.path.join(fileName)
-        print (f"Looking for folder: {downloadFolder}")
 
-
-        if not os.path.exists(downloadFolder):
+        if not os.path.exists(os.path.join(downloadFolder, "AIACIMP","Datasource", "data.npy")):
 
             os.makedirs(downloadFolder)
 
