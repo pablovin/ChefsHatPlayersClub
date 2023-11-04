@@ -15,6 +15,7 @@ import copy
 import os
 import sys
 import urllib.request
+import tarfile
 
 
 class RewardLegal(Reward):
@@ -72,8 +73,8 @@ class AgentPPOV2(ChefsHatAgent):
 
     downloadFrom = {
         "chefsHatV2": [
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_actor_vsSelf.hd5",
-            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/ppo_critic_vsSelf.hd5",
+            "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v2/ppo_v2/actor.tar",
+            "https://github.com/pablovin/ChefsHatPlayersClub/blob/main/src/ChefsHatPlayersClub/agents/chefs_cup_v2/ppo_v2/critic.tar",
         ],
     }
 
@@ -106,37 +107,36 @@ class AgentPPOV2(ChefsHatAgent):
 
         self.startAgent()
 
-        if not self.type == "Scratch":
-            fileNameActor = os.path.join(
+        fileNameActor = os.path.join(
+            os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
+            "actor",
+        )
+        fileNameCritic = os.path.join(
+            os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
+            "critic",
+        )
+
+        if not os.path.exists(fileNameCritic):
+            urllib.request.urlretrieve(
+                self.downloadFrom[agentType][0],
                 os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
-                self.loadFrom[agentType][0],
             )
-            fileNameCritic = os.path.join(
+            urllib.request.urlretrieve(
+                self.downloadFrom[agentType][1],
                 os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
-                self.loadFrom[agentType][1],
             )
-            if not os.path.exists(
-                os.path.join(
-                    os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
-                    "Trained",
-                )
-            ):
-                os.mkdir(
-                    os.path.abspath(
-                        os.path.join(sys.modules[AgentPPOV2.__module__].__file__)[0:-6],
-                        "Trained",
-                    )
+
+            with tarfile.open(fileNameActor + ".tar") as f:
+                f.extractall(
+                    os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-7],
                 )
 
-            if not os.path.exists(fileNameCritic):
-                urllib.request.urlretrieve(
-                    self.downloadFrom[agentType][0], fileNameActor
-                )
-                urllib.request.urlretrieve(
-                    self.downloadFrom[agentType][1], fileNameCritic
+            with tarfile.open(fileNameCritic + ".tar") as f:
+                f.extractall(
+                    os.path.abspath(sys.modules[AgentPPOV2.__module__].__file__)[0:-7],
                 )
 
-            self.loadModel([fileNameActor, fileNameCritic])
+        self.loadModel([fileNameActor, fileNameCritic])
 
         if not loadNetwork == "":
             self.loadModel(loadNetwork)
