@@ -107,6 +107,25 @@ agent = ALLIN(name="01", continueTraining=False, initialEpsilon=0.2, loadNetwork
 agent = AMYG4(name="01", continueTraining=False, initialEpsilon=0.2, loadNetwork="", saveFolder="", verbose=True, logDirectory=logDirectory)
 ```
 
+### Chef`s Hat Cup 2
+
+Implementations of the agents that won the Chef`s Hat Cup 2. 
+
+Agent | Description
+------------  | ------------ 
+Larger_Value |  Discard the larger amount of high cards, avoiding to pass
+BOOM | Discard the larger amount of high cards
+PPO_V2 | PPO algorithm trained with a custom reward based on finishing position
+
+
+
+```python
+agent = Bloom(name="001", saveModelIn="", verbose=True, savelogDirectory=logDirectory)
+agent = AgentLargerValue(name="002")
+agent = PPO_V2(name="003"continueTraining=False, initialEpsilon=1, loadNetwork="", saveFolder="", verbose=False, logDirectory=logDirectory)
+```
+
+
 
 ## Citations
 
