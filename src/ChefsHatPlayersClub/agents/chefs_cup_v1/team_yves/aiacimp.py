@@ -21,8 +21,6 @@ class AIACIMP(ChefsHatAgent):
     suffix = "AIACIMP"
     downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AIACIMP.tar"
 
-
-
     def __init__(
         self,
         name,
@@ -61,28 +59,23 @@ class AIACIMP(ChefsHatAgent):
 
         downloadFolder = os.path.join(fileName)
 
-        if not os.path.exists(os.path.join(downloadFolder, "AIACIMP","Datasource", "data.npy")):
-
+        if not os.path.exists(
+            os.path.join(downloadFolder, "AIACIMP", "Datasource", "data.npy")
+        ):
             os.makedirs(downloadFolder)
 
-
-            
             getFrom = os.path.join(self.downloadFrom)
 
-            downloadName = os.path.join(
-                downloadFolder, "aiacimp.zip"
-            )
+            downloadName = os.path.join(downloadFolder, "aiacimp.zip")
             urllib.request.urlretrieve(getFrom, downloadName)
 
             with tarfile.open(downloadName) as f:
-                    f.extractall(
-                        downloadFolder
-                    )
+                f.extractall(downloadFolder)
 
-            
-
-
-        np_load = numpy.load(os.path.join(downloadFolder, "AIACIMP","Datasource", "data.npy"), allow_pickle=True)
+        np_load = numpy.load(
+            os.path.join(downloadFolder, "AIACIMP", "Datasource", "data.npy"),
+            allow_pickle=True,
+        )
 
         if continueTraining:
             self.demonstrations = np_load
@@ -93,7 +86,7 @@ class AIACIMP(ChefsHatAgent):
             fileNameModelReward = os.path.join(loadNetwork, "reward")
         else:
             fileNameModelActor = os.path.join(downloadFolder, "AIACIMP", "actor")
-            fileNameModelReward = os.path.join(downloadFolder,  "AIACIMP", "reward")
+            fileNameModelReward = os.path.join(downloadFolder, "AIACIMP", "reward")
 
         self.loadModel([fileNameModelActor, fileNameModelReward])
 
@@ -376,10 +369,10 @@ class AIACIMP(ChefsHatAgent):
 
         featureInput = numpy.concatenate([s, action], axis=1)
 
-        new_r = self.rewardNetwork.predict([featureInput])
-        q = self.actor.predict([s, possibleActions])
-        next_q = self.actor.predict([new_s, newPossibleActions])
-        q_targ = self.targetNetwork.predict([new_s, newPossibleActions])
+        new_r = self.rewardNetwork([featureInput])
+        q = self.actor([s, possibleActions])
+        next_q = self.actor([new_s, newPossibleActions])
+        q_targ = self.targetNetwork([new_s, newPossibleActions])
 
         for i in range(s.shape[0]):
             if d[i]:
@@ -421,8 +414,8 @@ class AIACIMP(ChefsHatAgent):
         if self.prioritized_experience_replay:
             state = numpy.expand_dims(numpy.array(state), 0)
             next_state = numpy.expand_dims(numpy.array(next_state), 0)
-            q_val = self.actor.predict(state)
-            q_val_t = self.targetNetwork.predict(next_state)
+            q_val = self.actor(state)
+            q_val_t = self.targetNetwork(next_state)
             next_best_action = numpy.argmax(q_val)
             new_val = reward + self.gamma * q_val_t[0, next_best_action]
             td_error = abs(new_val - q_val)[0]
@@ -467,7 +460,7 @@ class AIACIMP(ChefsHatAgent):
             a[aIndex] = 1
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.targetNetwork.predict([stateVector, possibleActionsVector])[0]
+            a = self.targetNetwork([stateVector, possibleActionsVector])[0]
 
         return a
 
@@ -486,7 +479,7 @@ class AIACIMP(ChefsHatAgent):
 
         rewardShape = numpy.concatenate([state, info["action"]])
         rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
-        reward = self.rewardNetwork.predict([rewardShape])[0][0]
+        reward = self.rewardNetwork([rewardShape])[0][0]
 
         return reward
 

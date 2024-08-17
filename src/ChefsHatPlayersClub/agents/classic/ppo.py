@@ -14,6 +14,8 @@ import copy
 import os
 import sys
 import urllib.request
+import keras
+from typing import Literal
 
 
 def proximal_policy_optimization_loss():
@@ -79,14 +81,14 @@ class AgentPPO(ChefsHatAgent):
 
     def __init__(
         self,
-        name,
-        continueTraining=False,
-        agentType="Scratch",
-        initialEpsilon=1,
-        loadNetwork="",
-        saveFolder="",
-        verbose=False,
-        logDirectory="",
+        name: str,
+        continueTraining: bool = False,
+        agentType: Literal["Scratch", "vsRandom", "vsEveryone", "vsSelf"] = "Scratch",
+        initialEpsilon: int = 1,
+        loadNetwork: str = "",
+        saveFolder: str = "",
+        verbose: bool = False,
+        logDirectory: str = "",
     ):
         super().__init__(
             self.suffix,
@@ -106,7 +108,7 @@ class AgentPPO(ChefsHatAgent):
 
         self.startAgent()
 
-        if not type == "Scratch":
+        if not self.type == "Scratch":
             fileNameActor = os.path.join(
                 os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6],
                 self.loadFrom[agentType][0],
@@ -123,14 +125,20 @@ class AgentPPO(ChefsHatAgent):
             ):
                 os.mkdir(
                     os.path.join(
-                    os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[0:-6],
-                    "Trained",
-                )
+                        os.path.abspath(sys.modules[AgentPPO.__module__].__file__)[
+                            0:-6
+                        ],
+                        "Trained",
+                    )
                 )
 
             if not os.path.exists(fileNameCritic):
-                urllib.request.urlretrieve(self.downloadFrom[agentType][0], fileNameActor)
-                urllib.request.urlretrieve(self.downloadFrom[agentType][1], fileNameCritic)
+                urllib.request.urlretrieve(
+                    self.downloadFrom[agentType][0], fileNameActor
+                )
+                urllib.request.urlretrieve(
+                    self.downloadFrom[agentType][1], fileNameCritic
+                )
 
             self.loadModel([fileNameActor, fileNameCritic])
 
@@ -248,6 +256,9 @@ class AgentPPO(ChefsHatAgent):
         self.actor = load_model(actorModel, custom_objects={"loss": loss})
         self.critic = load_model(criticModel, custom_objects={"loss": loss})
 
+        print(f"Load from: {actorModel}")
+        print(f"Load from: {criticModel}")
+
     def updateModel(self, game, thisPlayer):
         state = numpy.array(self.states)
 
@@ -258,7 +269,7 @@ class AgentPPO(ChefsHatAgent):
 
         # Compute discounted rewards and Advantage (TD. Error)
         discounted_rewards = self.discount(reward)
-        state_values = self.critic.predict(numpy.array(state))
+        state_values = self.critic(numpy.array(state))
         advantages = discounted_rewards - numpy.reshape(state_values, len(state_values))
 
         criticLoss = self.critic.train_on_batch([state], [reward])
@@ -280,31 +291,8 @@ class AgentPPO(ChefsHatAgent):
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-        # save model
-        if (game + 1) % 100 == 0 and not self.saveModelIn == "":
-            self.actor.save(
-                os.path.join(
-                    self.saveModelIn,
-                    "actor_iteration_"
-                    + str(game)
-                    + "_Player_"
-                    + str(thisPlayer)
-                    + ".hd5",
-                )
-            )
-            self.critic.save(
-                os.path.join(
-                    self.saveModelIn,
-                    "critic_iteration_"
-                    + str(game)
-                    + "_Player_"
-                    + str(thisPlayer)
-                    + ".hd5",
-                )
-            )
-
         if self.verbose:
-            print(
+            self.log(
                 "-- "
                 + self.name
                 + ": Epsilon:"
@@ -345,17 +333,31 @@ class AgentPPO(ChefsHatAgent):
         stateVector = numpy.expand_dims(numpy.array(stateVector), 0)
         possibleActions2 = copy.copy(possibleActions)
 
-        if numpy.random.rand() <= self.epsilon:
+        randNum = numpy.random.rand()
+
+        if randNum <= self.epsilon:
+
             itemindex = numpy.array(numpy.where(numpy.array(possibleActions2) == 1))[
                 0
             ].tolist()
-            random.shuffle(itemindex)
-            aIndex = itemindex[0]
+            if len(itemindex) > 1:
+                itemindex.pop()
+
+            aIndex = itemindex[-1:]
             a = numpy.zeros(200)
             a[aIndex] = 1
+
+            # print(f"randNum: {randNum} - epsilon: {self.epsilon}")
         else:
+            sumBefore = numpy.sum(possibleActions)
+
+            if numpy.sum(possibleActions2) > 1:
+                possibleActions2[-1] = 0
+            # print(
+            #     f"Sum possible actions before: {sumBefore} after: {numpy.sum(possibleActions2)}"
+            # )
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.actor.predict([stateVector, possibleActionsVector])[0]
+            a = self.actor([stateVector, possibleActionsVector])[0]
 
         return a
 
@@ -364,6 +366,25 @@ class AgentPPO(ChefsHatAgent):
             rounds = info["rounds"]
             thisPlayer = info["thisPlayer"]
             self.updateModel(rounds, thisPlayer)
+
+            # save model
+            if not self.saveModelIn == "":
+                keras.models.save_model(
+                    self.actor,
+                    os.path.join(
+                        self.saveModelIn,
+                        "actor_Player_" + str(self.name) + ".h5",
+                    ),
+                )
+
+                keras.models.save_model(
+                    self.critic,
+                    os.path.join(
+                        self.saveModelIn,
+                        "critic_Player_" + str(self.name) + ".h5",
+                    ),
+                )
+
             self.resetMemory()
 
     def update_my_action(self, info):

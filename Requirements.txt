@@ -1,5 +1,4 @@
-chefshatgym==2.0.7
+chefshatgym
 keras==2.14.0
 numpy==1.26.1
-redis==5.0.1
 tensorflow==2.14.0

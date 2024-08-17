@@ -16,6 +16,7 @@ import tarfile
 import os
 import sys
 import urllib
+from typing import Literal
 
 types = [
     "lil_abcd_",
@@ -62,15 +63,51 @@ class AgentAIRL(ChefsHatAgent):
 
     def __init__(
         self,
-        name,
-        continueTraining,
-        demonstrations="",
-        agentType="Scratch",
-        initialEpsilon=1,
-        loadNetwork="",
-        saveFolder="",
-        verbose=False,
-        logDirectory="",
+        name: str,
+        demonstrations: str = "",
+        continueTraining: bool = False,
+        agentType: Literal[
+            "Scratch",
+            "lil_abcd_",
+            "lilAbsol",
+            "lilAle",
+            "lilAna",
+            "lilArkady",
+            "lilAuar",
+            "lilBlio1",
+            "lilBlio2",
+            "lilChu",
+            "lilDa48",
+            "lilDana",
+            "lilDJ",
+            "lilDomi948",
+            "lilEle",
+            "lilFael",
+            "lilGeo",
+            "lilIlzy",
+            "lilJba",
+            "lilLeandro",
+            "lilLena",
+            "lilLordelo",
+            "lilMars",
+            "lilNathalia",
+            "lilNik",
+            "lilNilay",
+            "lilRamsey",
+            "lilRaos",
+            "lilThecube",
+            "lilThuran",
+            "lilTisantana",
+            "lilToran",
+            "lilWinne",
+            "lilYves",
+            "lilYves2",
+        ] = "Scratch",
+        initialEpsilon: int = 1,
+        loadNetwork: str = "",
+        saveFolder: str = "",
+        verbose: bool = False,
+        logDirectory: str = "",
     ):
         super().__init__(
             self.suffix,
@@ -435,10 +472,10 @@ class AgentAIRL(ChefsHatAgent):
         # print("action:" + str(numpy.array(action).shape))
         featureInput = numpy.concatenate([s, action], axis=1)
 
-        new_r = self.rewardNetwork.predict([featureInput])
-        q = self.actor.predict([s, possibleActions])
-        next_q = self.actor.predict([new_s, newPossibleActions])
-        q_targ = self.targetNetwork.predict([new_s, newPossibleActions])
+        new_r = self.rewardNetwork([featureInput])
+        q = self.actor([s, possibleActions])
+        next_q = self.actor([new_s, newPossibleActions])
+        q_targ = self.targetNetwork([new_s, newPossibleActions])
 
         # self.successNetwork.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate), metrics=["mse"])
 
@@ -489,8 +526,8 @@ class AgentAIRL(ChefsHatAgent):
         if self.prioritized_experience_replay:
             state = numpy.expand_dims(numpy.array(state), 0)
             next_state = numpy.expand_dims(numpy.array(next_state), 0)
-            q_val = self.actor.predict(state)
-            q_val_t = self.targetNetwork.predict(next_state)
+            q_val = self.actor(state)
+            q_val_t = self.targetNetwork(next_state)
             next_best_action = numpy.argmax(q_val)
             new_val = reward + self.gamma * q_val_t[0, next_best_action]
             td_error = abs(new_val - q_val)[0]
@@ -534,7 +571,7 @@ class AgentAIRL(ChefsHatAgent):
             a[aIndex] = 1
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.targetNetwork.predict([stateVector, possibleActionsVector])[0]
+            a = self.targetNetwork([stateVector, possibleActionsVector])[0]
 
         return a
 
@@ -544,7 +581,7 @@ class AgentAIRL(ChefsHatAgent):
 
         rewardShape = numpy.concatenate([state, info["action"]])
         rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
-        reward = self.rewardNetwork.predict([rewardShape])[0][0]
+        reward = self.rewardNetwork([rewardShape])[0][0]
 
         return reward
 

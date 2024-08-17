@@ -1,10 +1,12 @@
 from ChefsHatGym.gameRooms.chefs_hat_room_local import ChefsHatRoomLocal
 from ChefsHatGym.env import ChefsHatEnv
 from ChefsHatGym.agents.agent_random import AgentRandon
-from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
+
+# from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
-from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
-from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.aiacimp import AIACIMP
+from ChefsHatPlayersClub.agents.chefs_cup_v2.larger_value.larger_value import (
+    AgentLargerValue,
+)
 
 # Room parameters
 room_name = "Testing_1_Local"
@@ -13,7 +15,7 @@ verbose = True
 
 # Game parameters
 game_type = ChefsHatEnv.GAMETYPE["MATCHES"]
-stop_criteria = 10
+stop_criteria = 1000
 maxRounds = -1
 
 # Start the room
@@ -30,48 +32,21 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-p1 = AIACIMP(
-    name="01",
-    continueTraining=False,
-    demonstrations="",
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
-    logDirectory=logDirectory,
+p1 = AgentLargerValue(
+    name="larger_value_1",
 )
 
 p2 = AgentPPO(
-    "02",
-    continueTraining=False,
-    agentType="vsRandom",
+    "PPOvsRandom",
+    continueTraining=True,
+    agentType="Scratch",
     initialEpsilon=1,
-    loadNetwork="",
-    saveFolder="",
+    saveFolder=logDirectory,
     verbose=False,
-    logDirectory="",
-)
-p3 = AgentDQL(
-    name="03",
-    continueTraining=False,
-    agentType="vsEveryone",
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
     logDirectory=logDirectory,
 )
-
-p4 = AgentAIRL(
-    "04",
-    continueTraining=False,
-    agentType="lilAle",
-    initialEpsilon=1,
-    loadNetwork="",
-    saveFolder="",
-    verbose=False,
-    logDirectory="",
-)
+p3 = AgentRandon(name="random_1", savelogDirectory=logDirectory, verbose=agentVerbose)
+p4 = AgentRandon(name="random_2", savelogDirectory=logDirectory, verbose=agentVerbose)
 
 # Adding players to the room
 for p in [p1, p2, p3, p4]:

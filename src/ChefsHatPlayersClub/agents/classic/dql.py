@@ -3,6 +3,7 @@ from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
 from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
 from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
+import keras
 from keras.layers import Input, Dense, Lambda, Multiply
 import keras.backend as K
 from keras.models import Model
@@ -15,12 +16,16 @@ import urllib.request
 import random
 import numpy
 import copy
+from typing import Literal
 
 
 types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
 
 class AgentDQL(ChefsHatAgent):
+
+    # _TYPES: Literal["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
+
     suffix = "DQL"
     actor = None
     training = False
@@ -37,16 +42,18 @@ class AgentDQL(ChefsHatAgent):
         "vsSelf": "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/classic/Trained/dql_vsSelf.hd5",
     }
 
+    # self, a: int, b: str, c: float, type_: Literal["solar", "view", "both"] = "solar"):
+
     def __init__(
         self,
-        name,
-        continueTraining=False,
-        agentType="Scratch",
-        initialEpsilon=1,
-        loadNetwork="",
-        saveFolder="",
-        verbose=False,
-        logDirectory="",
+        name: str,
+        continueTraining: bool = False,
+        agentType: Literal["Scratch", "vsRandom", "vsEveryone", "vsSelf"] = "Scratch",
+        initialEpsilon: int = 1,
+        loadNetwork: str = "",
+        saveFolder: str = "",
+        verbose: bool = False,
+        logDirectory: str = "",
     ):
         super().__init__(
             self.suffix,
@@ -69,7 +76,7 @@ class AgentDQL(ChefsHatAgent):
 
         self.startAgent()
 
-        if not type == "Scratch":
+        if not agentType == "Scratch":
             fileName = os.path.join(
                 os.path.abspath(sys.modules[AgentDQL.__module__].__file__)[0:-6],
                 self.loadFrom[agentType],
@@ -93,7 +100,7 @@ class AgentDQL(ChefsHatAgent):
             if not os.path.exists(fileName):
                 urlToDownload = self.downloadFrom[agentType]
                 saveIn = fileName
-                print (f"URL Download: {urlToDownload}")
+                print(f"URL Download: {urlToDownload}")
                 urllib.request.urlretrieve(self.downloadFrom[agentType], fileName)
             self.loadModel(fileName)
 
@@ -217,9 +224,9 @@ class AgentDQL(ChefsHatAgent):
         ) = self.memory.sample_batch(self.batchSize)
 
         # Apply Bellman Equation on batch samples to train our DDQN
-        q = self.actor.predict([s, possibleActions])
-        next_q = self.actor.predict([new_s, newPossibleActions])
-        q_targ = self.targetNetwork.predict([new_s, newPossibleActions])
+        q = self.actor([s, possibleActions])
+        next_q = self.actor([new_s, newPossibleActions])
+        q_targ = self.targetNetwork([new_s, newPossibleActions])
 
         for i in range(s.shape[0]):
             old_q = q[i, a[i]]
@@ -236,20 +243,8 @@ class AgentDQL(ChefsHatAgent):
         # Train on batch
         history = self.actor.fit([s, possibleActions], q, verbose=False)
 
-        if (game + 1) % 5 == 0 and not self.saveModelIn == "":
-            self.actor.save(
-                os.path.join(
-                    self.saveModelIn,
-                    "actor_iteration_"
-                    + str(game)
-                    + "_Player_"
-                    + str(thisPlayer)
-                    + ".hd5",
-                )
-            )
-
         if self.verbose:
-            print(
+            self.log(
                 "-- "
                 + self.name
                 + ": Epsilon:"
@@ -271,8 +266,8 @@ class AgentDQL(ChefsHatAgent):
         if self.prioritized_experience_replay:
             state = numpy.expand_dims(numpy.array(state), 0)
             next_state = numpy.expand_dims(numpy.array(next_state), 0)
-            q_val = self.actor.predict(state)
-            q_val_t = self.targetNetwork.predict(next_state)
+            q_val = self.actor(state)
+            q_val_t = self.targetNetwork(next_state)
             next_best_action = numpy.argmax(q_val)
             new_val = reward + self.gamma * q_val_t[0, next_best_action]
             td_error = abs(new_val - q_val)[0]
@@ -319,7 +314,8 @@ class AgentDQL(ChefsHatAgent):
 
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.actor.predict([stateVector, possibleActionsVector])[0]
+
+            a = self.actor([stateVector, possibleActionsVector])[0]
 
         return a
 
@@ -366,5 +362,14 @@ class AgentDQL(ChefsHatAgent):
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
 
+                if not self.saveModelIn == "":
+
+                    keras.models.save_model(
+                        self.critic,
+                        os.path.join(
+                            self.saveModelIn,
+                            "actor_Player" + str(self.name) + ".keras",
+                        ),
+                    )
                 if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay

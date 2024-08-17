@@ -262,7 +262,7 @@ class AgentPPOV2(ChefsHatAgent):
 
         # Compute discounted rewards and Advantage (TD. Error)
         discounted_rewards = self.discount(reward)
-        state_values = self.critic.predict(numpy.array(state))
+        state_values = self.critic(numpy.array(state))
         advantages = discounted_rewards - numpy.reshape(state_values, len(state_values))
 
         criticLoss = self.critic.train_on_batch([state], [reward])
@@ -360,7 +360,7 @@ class AgentPPOV2(ChefsHatAgent):
             a[aIndex] = 1
         else:
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
-            a = self.actor.predict([stateVector, possibleActionsVector])[0]
+            a = self.actor([stateVector, possibleActionsVector])[0]
 
         return a
 
