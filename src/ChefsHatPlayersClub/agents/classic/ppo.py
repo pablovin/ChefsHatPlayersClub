@@ -16,6 +16,9 @@ import sys
 import urllib.request
 import keras
 from typing import Literal
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
 def proximal_policy_optimization_loss():

@@ -17,6 +17,9 @@ import os
 import sys
 import urllib
 from typing import Literal
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 types = [
     "lil_abcd_",

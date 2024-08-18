@@ -16,6 +16,9 @@ import os
 import sys
 import urllib.request
 import tarfile
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
 class RewardLegal(Reward):

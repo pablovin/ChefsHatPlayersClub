@@ -18,6 +18,9 @@ import numpy
 import copy
 from typing import Literal
 
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 

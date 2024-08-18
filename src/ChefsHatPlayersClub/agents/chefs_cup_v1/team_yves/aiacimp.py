@@ -15,6 +15,9 @@ import sys
 import tensorflow as tf
 import urllib
 import tarfile
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
 class AIACIMP(ChefsHatPlayer):

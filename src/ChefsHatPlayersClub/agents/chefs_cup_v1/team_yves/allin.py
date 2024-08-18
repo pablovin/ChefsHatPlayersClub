@@ -16,6 +16,9 @@ import numpy
 import copy
 import urllib
 import tarfile
+import tensorflow as tf
+
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 
 class ALLIN(ChefsHatPlayer):
