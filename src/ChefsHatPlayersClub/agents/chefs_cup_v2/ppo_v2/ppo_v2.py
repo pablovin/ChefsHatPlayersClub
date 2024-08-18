@@ -1,5 +1,5 @@
 # Adapted from: https://github.com/LuEE-C/PPO-Keras/blob/master/Main.py
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 from ChefsHatGym.rewards.reward import Reward
 from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
@@ -59,7 +59,7 @@ def proximal_policy_optimization_loss():
 types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
 
-class AgentPPOV2(ChefsHatAgent):
+class AgentPPOV2(ChefsHatPlayer):
     suffix = "PPO_V2"
     actor = None
     training = False
@@ -85,21 +85,22 @@ class AgentPPOV2(ChefsHatAgent):
         initialEpsilon=1,
         loadNetwork="",
         saveFolder="",
-        verbose=False,
-        logDirectory="",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             name,
-            saveFolder,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
         self.loadNetwork = loadNetwork
-
-        if verbose:
-            self.startLogging(logDirectory)
 
         agentType = "chefsHatV2"
         self.type = agentType
@@ -308,18 +309,17 @@ class AgentPPOV2(ChefsHatAgent):
                 )
             )
 
-        if self.verbose:
-            print(
-                "-- "
-                + self.name
-                + ": Epsilon:"
-                + str(self.epsilon)
-                + " - ALoss:"
-                + str(actorLoss)
-                + " - "
-                + "CLoss: "
-                + str(criticLoss)
-            )
+        self.log(
+            "-- "
+            + self.name
+            + ": Epsilon:"
+            + str(self.epsilon)
+            + " - ALoss:"
+            + str(actorLoss)
+            + " - "
+            + "CLoss: "
+            + str(criticLoss)
+        )
 
     def resetMemory(self):
         self.states = []

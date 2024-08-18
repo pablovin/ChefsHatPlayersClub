@@ -1,4 +1,4 @@
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
 
 from keras.layers import Input, Dense, Concatenate, Lambda, Multiply, LeakyReLU
@@ -17,7 +17,7 @@ import urllib
 import tarfile
 
 
-class AMYG4(ChefsHatAgent):
+class AMYG4(ChefsHatPlayer):
     suffix = "AMYG4"
     downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AMYG4.tar"
 
@@ -28,14 +28,18 @@ class AMYG4(ChefsHatAgent):
         demonstrations="",
         initialEpsilon=1,
         loadNetwork="",
-        saveFolder="",
-        verbose=False,
-        logDirectory="",
+        saveFolder: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             "UNIQUE" + "_" + name,
-            saveFolder,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         fileName = os.path.abspath(sys.modules[AMYG4.__module__].__file__)[0:-3]
@@ -48,8 +52,6 @@ class AMYG4(ChefsHatAgent):
             self.saveModelIn = fileName
         else:
             self.saveModelIn = saveFolder
-
-        self.verbose = verbose
 
         self.demonstrations = []
         self.startAgent()
@@ -389,17 +391,16 @@ class AMYG4(ChefsHatAgent):
             self.actor.save(os.path.join(self.saveModelIn, "actor"))
             self.rewardNetwork.save(os.path.join(self.saveModelIn, "reward"))
 
-        if self.verbose:
-            print(
-                "-- "
-                + self.name
-                + ": Epsilon:"
-                + str(self.epsilon)
-                + " - Loss Policy: "
-                + str(lossPolicy)
-                + " - Loss Reward: "
-                + str(lossReward)
-            )
+        self.log(
+            "-- "
+            + self.name
+            + ": Epsilon:"
+            + str(self.epsilon)
+            + " - Loss Policy: "
+            + str(lossPolicy)
+            + " - Loss Reward: "
+            + str(lossReward)
+        )
 
     def memorize(
         self,

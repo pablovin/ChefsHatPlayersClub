@@ -1,4 +1,4 @@
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
 
 from keras.layers import Input, Dense, Concatenate, Lambda, Multiply, LeakyReLU
@@ -17,7 +17,7 @@ import urllib
 import tarfile
 
 
-class AIACIMP(ChefsHatAgent):
+class AIACIMP(ChefsHatPlayer):
     suffix = "AIACIMP"
     downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/chefs_cup_v1/team_yves/AIACIMP.tar"
 
@@ -28,14 +28,18 @@ class AIACIMP(ChefsHatAgent):
         demonstrations="",
         initialEpsilon=1,
         loadNetwork="",
-        saveFolder="",
-        verbose=False,
-        logDirectory="",
+        saveFolder: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             "UNIQUE" + "_" + name,
-            saveFolder,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         fileName = os.path.abspath(sys.modules[AIACIMP.__module__].__file__)[0:-3]
@@ -49,9 +53,6 @@ class AIACIMP(ChefsHatAgent):
         else:
             self.saveModelIn = saveFolder
 
-        if verbose:
-            self.startLogging(logDirectory)
-
         self.demonstrations = []
         self.startAgent()
         self.beforeInfo = None
@@ -62,7 +63,7 @@ class AIACIMP(ChefsHatAgent):
         if not os.path.exists(
             os.path.join(downloadFolder, "AIACIMP", "Datasource", "data.npy")
         ):
-            os.makedirs(downloadFolder)
+            os.makedirs(os.path.join(downloadFolder, "AIACIMP", "Datasource"))
 
             getFrom = os.path.join(self.downloadFrom)
 
@@ -389,17 +390,16 @@ class AIACIMP(ChefsHatAgent):
             self.actor.save(os.path.join(self.saveModelIn, "actor"))
             self.rewardNetwork.save(os.path.join(self.saveModelIn, "reward"))
 
-        if self.verbose:
-            print(
-                "-- "
-                + self.name
-                + ": Epsilon:"
-                + str(self.epsilon)
-                + " - Loss Policy: "
-                + str(lossPolicy)
-                + " - Loss Reward: "
-                + str(lossReward)
-            )
+        self.log(
+            "-- "
+            + self.name
+            + ": Epsilon:"
+            + str(self.epsilon)
+            + " - Loss Policy: "
+            + str(lossPolicy)
+            + " - Loss Reward: "
+            + str(lossReward)
+        )
 
     def memorize(
         self,

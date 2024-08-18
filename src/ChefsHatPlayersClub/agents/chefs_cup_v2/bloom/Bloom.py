@@ -1,22 +1,35 @@
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 import numpy
-import random
 from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
 
-class Bloom(ChefsHatAgent):
+class Bloom(ChefsHatPlayer):
     suffix = "BLOOM"
 
-    def __init__(self, name, saveModelIn: str = "", verbose: bool = False, savelogDirectory : str = ""):
-        super().__init__(self.suffix, name, saveModelIn,)
+    def __init__(
+        self,
+        name,
+        saveFolder: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
+    ):
+        super().__init__(
+            self.suffix,
+            name,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
+        )
         self.reward = RewardOnlyWinning()
-        if verbose:
-            self.startLogging(savelogDirectory)
 
     # Receives action
     def get_action(self, observations):
         possibleActions = observations[28:]
-        itemindex = numpy.array(numpy.where(numpy.array(possibleActions) == 1))[0].tolist()
+        itemindex = numpy.array(numpy.where(numpy.array(possibleActions) == 1))[
+            0
+        ].tolist()
         aIndex = numpy.max(itemindex[:-1]) if len(itemindex) > 1 else itemindex[0]
         a = numpy.zeros(200)
         a[aIndex] = 1
@@ -38,7 +51,7 @@ class Bloom(ChefsHatAgent):
 
     def update_end_match(self, envInfo):
         pass
-    
+
     def update_start_match(self, cards, players, starting_player):
         pass
 

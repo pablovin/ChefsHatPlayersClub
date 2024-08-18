@@ -1,4 +1,4 @@
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 
 
 from keras.layers import Input, Dense, Concatenate, Lambda, Multiply, LeakyReLU
@@ -56,7 +56,7 @@ types = [
 ]
 
 
-class AgentAIRL(ChefsHatAgent):
+class AgentAIRL(ChefsHatPlayer):
     suffix = "AIRL"
 
     downloadFrom = "https://github.com/pablovin/ChefsHatPlayersClub/raw/main/src/ChefsHatPlayersClub/agents/karma_camaleon_club/Trained/"
@@ -106,22 +106,23 @@ class AgentAIRL(ChefsHatAgent):
         initialEpsilon: int = 1,
         loadNetwork: str = "",
         saveFolder: str = "",
-        verbose: bool = False,
-        logDirectory: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             agentType + "_" + name,
-            saveFolder,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
         self.loadNetwork = loadNetwork
         self.saveModelIn = saveFolder
-
-        if verbose:
-            self.startLogging(logDirectory)
 
         self.demonstrations = []
         self.startAgent()
@@ -501,17 +502,16 @@ class AgentAIRL(ChefsHatAgent):
             self.rewardNetwork.save(self.saveModelIn + "/reward")
             # print("!!!!!Saved:" + str(self.saveModelIn + "/actor"))
 
-        if self.verbose:
-            print(
-                "-- "
-                + self.name
-                + ": Epsilon:"
-                + str(self.epsilon)
-                + " - Loss Policy: "
-                + str(lossPolicy)
-                + " - Loss Reward: "
-                + str(lossReward)
-            )
+        self.log(
+            "-- "
+            + self.name
+            + ": Epsilon:"
+            + str(self.epsilon)
+            + " - Loss Policy: "
+            + str(lossPolicy)
+            + " - Loss Reward: "
+            + str(lossReward)
+        )
 
     def memorize(
         self,

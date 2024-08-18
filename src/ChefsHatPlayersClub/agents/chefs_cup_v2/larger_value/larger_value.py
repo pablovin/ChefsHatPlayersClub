@@ -1,29 +1,30 @@
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 import numpy
 import random
 from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
 
-class AgentLargerValue(ChefsHatAgent):
+class AgentLargerValue(ChefsHatPlayer):
     suffix = "LARGER_VALUE"
 
     def __init__(
         self,
         name,
-        saveModelIn: str = "",
-        verbose: bool = False,
-        savelogDirectory: str = "",
+        saveFolder: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             name,
-            saveModelIn,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         self.reward = RewardOnlyWinning()
-
-        if verbose:
-            self.startLogging(savelogDirectory)
 
     def get_action(self, observations):
         possibleActions = observations[28:]

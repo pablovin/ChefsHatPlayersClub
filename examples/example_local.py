@@ -1,29 +1,37 @@
 from ChefsHatGym.gameRooms.chefs_hat_room_local import ChefsHatRoomLocal
 from ChefsHatGym.env import ChefsHatEnv
-from ChefsHatGym.agents.agent_random import AgentRandon
 from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
 from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.aiacimp import AIACIMP
 
 # Room parameters
-room_name = "Testing_1_Local"
-timeout_player_response = 5
-verbose = True
+room_name = "Testing_2_Local"
 
 # Game parameters
 game_type = ChefsHatEnv.GAMETYPE["MATCHES"]
-stop_criteria = 10
+stop_criteria = 3
 maxRounds = -1
+
+# Logging information
+verbose_console = True
+verbose_log = True
+game_verbose_console = False
+game_verbose_log = True
+save_dataset = True
+
 
 # Start the room
 room = ChefsHatRoomLocal(
     room_name,
-    timeout_player_response=timeout_player_response,
     game_type=game_type,
     stop_criteria=stop_criteria,
     max_rounds=maxRounds,
-    verbose=verbose,
+    verbose_console=verbose_console,
+    verbose_log=verbose_log,
+    game_verbose_console=game_verbose_console,
+    game_verbose_log=game_verbose_log,
+    save_dataset=save_dataset,
 )
 
 # Create the players
@@ -33,11 +41,7 @@ agentVerbose = True
 p1 = AIACIMP(
     name="01",
     continueTraining=False,
-    demonstrations="",
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
+    verbose_log=True,
     logDirectory=logDirectory,
 )
 
@@ -45,20 +49,14 @@ p2 = AgentPPO(
     "02",
     continueTraining=False,
     agentType="vsRandom",
-    initialEpsilon=1,
-    loadNetwork="",
-    saveFolder="",
-    verbose=False,
-    logDirectory="",
+    verbose_log=True,
+    logDirectory=logDirectory,
 )
 p3 = AgentDQL(
     name="03",
     continueTraining=False,
     agentType="vsEveryone",
-    initialEpsilon=0.2,
-    loadNetwork="",
-    saveFolder="",
-    verbose=True,
+    verbose_log=True,
     logDirectory=logDirectory,
 )
 
@@ -66,11 +64,8 @@ p4 = AgentAIRL(
     "04",
     continueTraining=False,
     agentType="lilAle",
-    initialEpsilon=1,
-    loadNetwork="",
-    saveFolder="",
-    verbose=False,
-    logDirectory="",
+    verbose_log=True,
+    logDirectory=logDirectory,
 )
 
 # Adding players to the room
@@ -78,7 +73,7 @@ for p in [p1, p2, p3, p4]:
     room.add_player(p)
 
 # Start the game
-info = room.start_new_game(game_verbose=True)
+info = room.start_new_game()
 
 print(f"Performance score: {info['performanceScore']}")
 print(f"Scores: {info['score']}")

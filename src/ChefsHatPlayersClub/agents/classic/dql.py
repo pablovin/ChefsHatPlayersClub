@@ -1,6 +1,6 @@
 from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
 
-from ChefsHatGym.agents.chefs_hat_agent import ChefsHatAgent
+from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 from ChefsHatGym.rewards.only_winning import RewardOnlyWinning
 
 import keras
@@ -22,7 +22,7 @@ from typing import Literal
 types = ["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
 
-class AgentDQL(ChefsHatAgent):
+class AgentDQL(ChefsHatPlayer):
 
     # _TYPES: Literal["Scratch", "vsRandom", "vsEveryone", "vsSelf"]
 
@@ -52,24 +52,23 @@ class AgentDQL(ChefsHatAgent):
         initialEpsilon: int = 1,
         loadNetwork: str = "",
         saveFolder: str = "",
-        verbose: bool = False,
-        logDirectory: str = "",
+        verbose_console: bool = False,
+        verbose_log: bool = False,
+        log_directory: str = "",
     ):
         super().__init__(
             self.suffix,
             agentType + "_" + name,
-            saveFolder,
+            this_agent_folder=saveFolder,
+            verbose_console=verbose_console,
+            verbose_log=verbose_log,
+            log_directory=log_directory,
         )
 
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
 
         self.loadNetwork = loadNetwork
-
-        if verbose:
-            self.startLogging(logDirectory)
-
-        self.verbose = verbose
 
         self.type = agentType
         self.reward = RewardOnlyWinning()
@@ -243,15 +242,14 @@ class AgentDQL(ChefsHatAgent):
         # Train on batch
         history = self.actor.fit([s, possibleActions], q, verbose=False)
 
-        if self.verbose:
-            self.log(
-                "-- "
-                + self.name
-                + ": Epsilon:"
-                + str(self.epsilon)
-                + " - Loss:"
-                + str(history.history["loss"])
-            )
+        self.log(
+            "-- "
+            + self.name
+            + ": Epsilon:"
+            + str(self.epsilon)
+            + " - Loss:"
+            + str(history.history["loss"])
+        )
 
     def memorize(
         self,
