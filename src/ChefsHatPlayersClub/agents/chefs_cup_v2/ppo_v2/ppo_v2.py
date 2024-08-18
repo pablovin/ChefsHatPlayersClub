@@ -84,8 +84,8 @@ class AgentPPOV2(ChefsHatPlayer):
     def __init__(
         self,
         name,
-        continueTraining=False,
-        initialEpsilon=1,
+        continueTraining: bool = False,
+        initialEpsilon: float = 1,
         loadNetwork="",
         saveFolder="",
         verbose_console: bool = False,

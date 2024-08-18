@@ -27,9 +27,9 @@ class AMYG4(ChefsHatPlayer):
     def __init__(
         self,
         name,
-        continueTraining=False,
+        continueTraining: bool = False,
         demonstrations="",
-        initialEpsilon=1,
+        initialEpsilon: float = 1,
         loadNetwork="",
         saveFolder: str = "",
         verbose_console: bool = False,

@@ -52,7 +52,7 @@ class AgentDQL(ChefsHatPlayer):
         name: str,
         continueTraining: bool = False,
         agentType: Literal["Scratch", "vsRandom", "vsEveryone", "vsSelf"] = "Scratch",
-        initialEpsilon: int = 1,
+        initialEpsilon: float = 1,
         loadNetwork: str = "",
         saveFolder: str = "",
         verbose_console: bool = False,

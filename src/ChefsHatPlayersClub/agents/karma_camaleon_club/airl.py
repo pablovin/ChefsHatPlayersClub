@@ -106,7 +106,7 @@ class AgentAIRL(ChefsHatPlayer):
             "lilYves",
             "lilYves2",
         ] = "Scratch",
-        initialEpsilon: int = 1,
+        initialEpsilon: float = 1,
         loadNetwork: str = "",
         saveFolder: str = "",
         verbose_console: bool = False,

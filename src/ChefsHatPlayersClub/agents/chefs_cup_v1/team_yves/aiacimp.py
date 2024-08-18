@@ -1,5 +1,6 @@
 from ChefsHatGym.agents.base_classes.chefs_hat_player import ChefsHatPlayer
 from ChefsHatPlayersClub.agents.util.memory_buffer import MemoryBuffer
+import logging as my_logging
 
 from keras.layers import Input, Dense, Concatenate, Lambda, Multiply, LeakyReLU
 import keras.backend as K
@@ -27,15 +28,16 @@ class AIACIMP(ChefsHatPlayer):
     def __init__(
         self,
         name,
-        continueTraining=False,
+        continueTraining: bool = False,
         demonstrations="",
-        initialEpsilon=1,
+        initialEpsilon: float = 1,
         loadNetwork="",
         saveFolder: str = "",
         verbose_console: bool = False,
         verbose_log: bool = False,
         log_directory: str = "",
     ):
+
         super().__init__(
             self.suffix,
             "UNIQUE" + "_" + name,
@@ -101,7 +103,7 @@ class AIACIMP(ChefsHatPlayer):
     # Agent methods
 
     def updateDemonstrations(self):
-        if len(self.demonstrations == 0):
+        if len(self.demonstrations[0] == 0):
             while self.demonstrations.shape[0] < self.batchSize:
                 random.shuffle(self.demonstrations)
                 self.demonstrations = numpy.append(
