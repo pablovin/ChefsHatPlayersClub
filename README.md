@@ -1,5 +1,6 @@
 ## Chef's Hat Players Club
-The Chef's Hat Player club provides ready-to-use agents for the Chef's Hat game.
+
+The Chef's Hat Player club provides ready-to-use agents for the [ChefsHatGym]( https://github.com/pablovin/ChefsHatGYM) simulator.
 
 ## Instalation
 
