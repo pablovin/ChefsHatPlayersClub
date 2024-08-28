@@ -467,12 +467,13 @@ class AIACIMP(ChefsHatPlayer):
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
             a = self.targetNetwork([stateVector, possibleActionsVector])[0]
 
-        return a
+        return numpy.array(a)
 
     def get_reward(self, info):
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
-        stateBefore = info["obervations"]
+        stateBefore = info["Observation_Before"]
+        thisPlayer = info["Author_Index"]
+        this_player_name = info["Player_Names"][thisPlayer]
+        matchFinished = info["Finished_Players"][this_player_name]
 
         if matchFinished:
             if thisPlayer == 0:
@@ -481,8 +482,9 @@ class AIACIMP(ChefsHatPlayer):
                 return -0.001
 
         state = numpy.concatenate((stateBefore[0:11], stateBefore[11:28]))
-
-        rewardShape = numpy.concatenate([state, info["action"]])
+        action = numpy.zeros(200)
+        action[info["Author_Index"]] = 1
+        rewardShape = numpy.concatenate([state, action])
         rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
         reward = self.rewardNetwork([rewardShape])[0][0]
 
@@ -490,8 +492,8 @@ class AIACIMP(ChefsHatPlayer):
 
     def update_end_match(self, info):
         if self.training:
-            rounds = info["rounds"]
-            thisPlayer = info["thisPlayer"]
+            rounds = info["Rounds"]
+            thisPlayer = info["Author_Index"]
             if self.memory.size() > self.batchSize:
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
@@ -502,10 +504,12 @@ class AIACIMP(ChefsHatPlayer):
 
     def update_my_action(self, info):
         if self.training:
-            done = info["thisPlayerFinished"]
-            action = numpy.array(info["action"])
-            observation = numpy.array(info["observation"])
-            nextObservation = numpy.array(info["nextObservation"])
+            this_player = info["Author_Index"]
+            this_player_name = info["Player_Names"][this_player]
+            done = info["Finished_Players"][this_player_name]
+            action = info["Action_Index"]
+            observation = numpy.array(info["Observation_Before"])
+            nextObservation = numpy.array(info["Observation_After"])
 
             reward = self.get_reward(info)
 
@@ -518,7 +522,6 @@ class AIACIMP(ChefsHatPlayer):
             newPossibleActions = nextObservation[28:]
 
             # memorize
-            action = numpy.argmax(action)
             self.memorize(
                 state,
                 action,

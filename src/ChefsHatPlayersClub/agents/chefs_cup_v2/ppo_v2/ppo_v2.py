@@ -341,10 +341,12 @@ class AgentPPOV2(ChefsHatPlayer):
         return True
 
     def get_reward(self, info):
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
+        this_player = info["Author_Index"]
+        this_player_name = info["Player_Names"][this_player]
+        this_player_position = 3 - info["Match_Score"][this_player_name]
+        this_player_finished = info["Finished_Players"][this_player_name]
 
-        return self.reward.getReward(thisPlayer, matchFinished)
+        return self.reward.getReward(this_player_position, this_player_finished)
 
     def get_action(self, observations):
         stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
@@ -365,32 +367,30 @@ class AgentPPOV2(ChefsHatPlayer):
             possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
             a = self.actor([stateVector, possibleActionsVector])[0]
 
-        return a
+        return numpy.array(a)
 
     def update_end_match(self, info):
         if self.training:
-            rounds = info["matches"]
-            thisPlayer = info["thisPlayer"]
+            rounds = info["Rounds"]
+            thisPlayer = info["Author_Index"]
             self.updateModel(rounds, thisPlayer)
             self.resetMemory()
 
     def update_my_action(self, info):
         if self.training:
-            action = numpy.array(info["action"])
-            observation = numpy.array(info["observation"])
-            nextObservation = numpy.array(info["nextObservation"])
+            action_index = info["Action_Index"]
+            observation = numpy.array(info["Observation_Before"])
 
             reward = self.get_reward(info)
 
             state = numpy.concatenate((observation[0:11], observation[11:28]))
             possibleActions = observation[28:]
 
-            realEncoding = action
             action = numpy.zeros(action.shape)
-            action[numpy.argmax(realEncoding)] = 1
+            action[action_index] = 1
 
             self.states.append(state)
             self.actions.append(action)
             self.rewards.append(reward)
             self.possibleActions.append(possibleActions)
-            self.realEncoding.append(realEncoding)
+            self.realEncoding.append(action)

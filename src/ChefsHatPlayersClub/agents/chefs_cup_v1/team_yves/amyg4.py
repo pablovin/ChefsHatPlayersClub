@@ -469,24 +469,28 @@ class AMYG4(ChefsHatPlayer):
         possibleActionsVector = numpy.expand_dims(numpy.array(possibleActions2), 0)
         a = self.targetNetwork([stateVector, possibleActionsVector])[0]
 
-        return a
+        return numpy.array(a)
 
     def get_reward(self, info):
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
-        stateBefore = info["obervations"]
+        stateBefore = info["Observation_Before"]
+        thisPlayer = info["Author_Index"]
+        this_player_name = info["Player_Names"][thisPlayer]
+        matchFinished = info["Finished_Players"][this_player_name]
 
-        maxScore = numpy.argmax(info["score"], axis=0)
+        maxScore = numpy.argmax(info["Game_Score"].values(), axis=0)
         beforeScore = self.beforeScore
         beforeInfo = self.beforeInfo
 
         self.beforeInfo = info
-        self.beforeScore = info["score"][0]
+        self.beforeScore = info["Game_Score"][0]
         if matchFinished:
             if thisPlayer == 0:
                 return 1
             else:
-                if beforeScore is not None and info["score"][0] > beforeScore:
+                if (
+                    beforeScore is not None
+                    and info["Game_Score"].values()[0] > beforeScore
+                ):
                     if maxScore == 0:
                         return 1
                     else:
@@ -495,12 +499,14 @@ class AMYG4(ChefsHatPlayer):
                 return -0.001
 
         state = numpy.concatenate((stateBefore[0:11], stateBefore[11:28]))
-
-        rewardShape = numpy.concatenate([state, info["action"]])
+        action = numpy.zeros(200)
+        action[info["Author_Index"]] = 1
+        rewardShape = numpy.concatenate([state, action])
         rewardShape = numpy.expand_dims(numpy.array(rewardShape), 0)
         reward = -0.001
         # reward = self.rewardNetwork.predict([rewardShape])[0][0]
 
+        beforeInfo = None
         if beforeInfo is not None:
             lastActionPlayers = beforeInfo["lastActionPlayers"]
             actualActionPlayers = info["lastActionPlayers"]
@@ -543,8 +549,8 @@ class AMYG4(ChefsHatPlayer):
 
     def update_end_match(self, info):
         if self.training:
-            rounds = info["rounds"]
-            thisPlayer = info["thisPlayer"]
+            rounds = info["Rounds"]
+            thisPlayer = info["Author_Index"]
             if self.memory.size() > self.batchSize:
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
@@ -553,12 +559,15 @@ class AMYG4(ChefsHatPlayer):
                 if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay
 
-    def actionUpdate(self, info):
+    def update_my_action(self, info):
         if self.training:
-            done = info["thisPlayerFinished"]
-            action = numpy.array(info["action"])
-            observation = numpy.array(info["observation"])
-            nextObservation = numpy.array(info["nextObservation"])
+            thisPlayer = info["Author_Index"]
+            this_player_name = info["Player_Names"][thisPlayer]
+            done = info["Finished_Players"][this_player_name]
+
+            action = info["Action_Index"]
+            observation = numpy.array(info["Observation_Before"])
+            nextObservation = numpy.array(info["Observation_After"])
 
             reward = self.get_reward(info)
 
@@ -571,7 +580,6 @@ class AMYG4(ChefsHatPlayer):
             newPossibleActions = nextObservation[28:]
 
             # memorize
-            action = numpy.argmax(action)
             self.memorize(
                 state,
                 action,

@@ -318,23 +318,28 @@ class AgentDQL(ChefsHatPlayer):
 
             a = self.actor([stateVector, possibleActionsVector])[0]
 
-        return a
+        return numpy.array(a)
 
     def get_reward(self, info):
-        thisPlayer = info["thisPlayerPosition"]
-        matchFinished = info["thisPlayerFinished"]
+        this_player = info["Author_Index"]
+        this_player_name = info["Player_Names"][this_player]
+        this_player_position = 3 - info["Match_Score"][this_player_name]
+        this_player_finished = info["Finished_Players"][this_player_name]
 
-        return self.reward.getReward(thisPlayer, matchFinished)
+        return self.reward.getReward(this_player_position, this_player_finished)
 
     def update_my_action(self, info):
         if self.training:
-            action = numpy.array(info["action"])
-            observation = numpy.array(info["observation"])
-            nextObservation = numpy.array(info["nextObservation"])
+
+            action = info["Action_Index"]
+            observation = numpy.array(info["Observation_Before"])
+            nextObservation = numpy.array(info["Observation_After"])
+
+            this_player = info["Author_Index"]
+            this_player_name = info["Player_Names"][this_player]
+            done = info["Finished_Players"][this_player_name]
 
             reward = self.get_reward(info)
-
-            done = info["thisPlayerFinished"]
 
             state = numpy.concatenate((observation[0:11], observation[11:28]))
             possibleActions = observation[28:]
@@ -344,7 +349,6 @@ class AgentDQL(ChefsHatPlayer):
             )
             newPossibleActions = nextObservation[28:]
 
-            action = numpy.argmax(action)
             self.memorize(
                 state,
                 action,
@@ -357,8 +361,8 @@ class AgentDQL(ChefsHatPlayer):
 
     def update_end_match(self, info):
         if self.training:
-            rounds = info["rounds"]
-            thisPlayer = info["thisPlayer"]
+            rounds = info["Rounds"]
+            thisPlayer = info["Author_Index"]
             if self.memory.size() > self.batchSize:
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
