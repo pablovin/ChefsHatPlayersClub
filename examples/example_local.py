@@ -4,19 +4,23 @@ from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.karma_camaleon_club.airl import AgentAIRL
 from ChefsHatPlayersClub.agents.chefs_cup_v1.team_yves.aiacimp import AIACIMP
+from ChefsHatPlayersClub.agents.chefs_cup_v2.larger_value.larger_value import (
+    AgentLargerValue,
+)
+
 
 # Room parameters
-room_name = "Testing_2_Local"
+room_name = "1000_DQL_vs_Random_random_random_random"
 
 # Game parameters
 game_type = ChefsHatEnv.GAMETYPE["MATCHES"]
-stop_criteria = 3
+stop_criteria = 10
 maxRounds = -1
 
 # Logging information
 verbose_console = True
 verbose_log = True
-game_verbose_console = False
+game_verbose_console = True
 game_verbose_log = True
 save_dataset = True
 
@@ -38,34 +42,33 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-p1 = AIACIMP(
+# Create the players
+p1 = AgentDQL(
     name="01",
-    continueTraining=False,
-    verbose_log=True,
-    logDirectory=logDirectory,
-)
-
-p2 = AgentPPO(
-    "02",
-    continueTraining=False,
-    agentType="vsRandom",
-    verbose_log=True,
-    logDirectory=logDirectory,
-)
-p3 = AgentDQL(
-    name="03",
-    continueTraining=False,
+    verbose_log=agentVerbose,
     agentType="vsEveryone",
-    verbose_log=True,
-    logDirectory=logDirectory,
+    continueTraining=False,
+    log_directory=logDirectory,
+)
+p2 = AgentPPO(
+    name="02",
+    verbose_log=agentVerbose,
+    agentType="vsEveryone",
+    continueTraining=False,
+    log_directory=logDirectory,
 )
 
-p4 = AgentAIRL(
-    "04",
+p3 = AgentLargerValue(
+    name="03",
+    verbose_log=agentVerbose,
+    log_directory=logDirectory,
+)
+
+p4 = AIACIMP(
+    name="03",
+    verbose_log=agentVerbose,
     continueTraining=False,
-    agentType="lilAle",
-    verbose_log=True,
-    logDirectory=logDirectory,
+    log_directory=logDirectory,
 )
 
 # Adding players to the room
@@ -75,5 +78,5 @@ for p in [p1, p2, p3, p4]:
 # Start the game
 info = room.start_new_game()
 
-print(f"Performance score: {info['performanceScore']}")
-print(f"Scores: {info['score']}")
+print(f"Performance score: {info['Game_Performance_Score']}")
+print(f"Scores: {info['Game_Score']}")

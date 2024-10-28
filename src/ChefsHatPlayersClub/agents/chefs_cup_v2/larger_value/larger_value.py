@@ -65,8 +65,7 @@ class AgentLargerValue(ChefsHatPlayer):
 
     def get_reward(self, envInfo):
         this_player = envInfo["Author_Index"]
-        this_player_name = envInfo["Player_Names"][this_player]
-        this_player_position = 3 - envInfo["Match_Score"][this_player_name]
-        this_player_finished = envInfo["Finished_Players"][this_player_name]
+        this_player_position = 3 - envInfo["Match_Score"][this_player]
+        this_player_finished = envInfo["Finished_Players"][this_player]
 
         return self.reward.getReward(this_player_position, this_player_finished)

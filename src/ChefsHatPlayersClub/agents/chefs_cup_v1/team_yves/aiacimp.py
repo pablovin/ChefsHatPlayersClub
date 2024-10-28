@@ -472,8 +472,7 @@ class AIACIMP(ChefsHatPlayer):
     def get_reward(self, info):
         stateBefore = info["Observation_Before"]
         thisPlayer = info["Author_Index"]
-        this_player_name = info["Player_Names"][thisPlayer]
-        matchFinished = info["Finished_Players"][this_player_name]
+        matchFinished = info["Finished_Players"][thisPlayer]
 
         if matchFinished:
             if thisPlayer == 0:
@@ -505,8 +504,7 @@ class AIACIMP(ChefsHatPlayer):
     def update_my_action(self, info):
         if self.training:
             this_player = info["Author_Index"]
-            this_player_name = info["Player_Names"][this_player]
-            done = info["Finished_Players"][this_player_name]
+            done = info["Finished_Players"][this_player]
             action = info["Action_Index"]
             observation = numpy.array(info["Observation_Before"])
             nextObservation = numpy.array(info["Observation_After"])

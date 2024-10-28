@@ -469,10 +469,8 @@ class ALLIN(ChefsHatPlayer):
         return numpy.array(a)
 
     def get_reward(self, info):
-        stateBefore = info["Observation_Before"]
         thisPlayer = info["Author_Index"]
-        this_player_name = info["Player_Names"][thisPlayer]
-        matchFinished = info["Finished_Players"][this_player_name]
+        matchFinished = info["Finished_Players"][thisPlayer]
 
         if matchFinished:
             if thisPlayer == 0:
@@ -495,8 +493,7 @@ class ALLIN(ChefsHatPlayer):
     def update_my_action(self, info):
         if self.training:
             thisPlayer = info["Author_Index"]
-            this_player_name = info["Player_Names"][thisPlayer]
-            done = info["Finished_Players"][this_player_name]
+            done = info["Finished_Players"][thisPlayer]
 
             action = info["Action_Index"]
             observation = numpy.array(info["Observation_Before"])

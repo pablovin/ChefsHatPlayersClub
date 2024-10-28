@@ -2,18 +2,18 @@ from ChefsHatGym.gameRooms.chefs_hat_room_local import ChefsHatRoomLocal
 from ChefsHatGym.env import ChefsHatEnv
 from ChefsHatGym.agents.agent_random import AgentRandon
 
-# from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
+from ChefsHatPlayersClub.agents.classic.dql import AgentDQL
 from ChefsHatPlayersClub.agents.classic.ppo import AgentPPO
 from ChefsHatPlayersClub.agents.chefs_cup_v2.larger_value.larger_value import (
     AgentLargerValue,
 )
 
 # Room parameters
-room_name = "Testing_2_Local"
+room_name = "Training_Test"
 
 # Game parameters
 game_type = ChefsHatEnv.GAMETYPE["MATCHES"]
-stop_criteria = 3
+stop_criteria = 100
 maxRounds = -1
 
 # Logging information
@@ -22,7 +22,6 @@ verbose_log = True
 game_verbose_console = False
 game_verbose_log = True
 save_dataset = True
-
 
 # Start the room
 room = ChefsHatRoomLocal(
@@ -41,12 +40,7 @@ room = ChefsHatRoomLocal(
 logDirectory = room.get_log_directory()
 agentVerbose = True
 
-
-p1 = AgentLargerValue(
-    name="larger_value_1",
-)
-
-p2 = AgentPPO(
+p1 = AgentPPO(
     "PPOvsRandom",
     continueTraining=True,
     agentType="Scratch",
@@ -54,7 +48,19 @@ p2 = AgentPPO(
     verbose_log=True,
     log_directory=logDirectory,
 )
-p3 = AgentRandon(name="random_1", verbose_log=agentVerbose, log_directory=logDirectory)
+
+p2 = AgentLargerValue(
+    name="larger_value_1",
+)
+
+p3 = AgentDQL(
+    "DQLvsRandom",
+    continueTraining=True,
+    agentType="Scratch",
+    initialEpsilon=1,
+    verbose_log=True,
+    log_directory=logDirectory,
+)
 p4 = AgentRandon(name="random_2", verbose_log=agentVerbose, log_directory=logDirectory)
 
 # Adding players to the room
@@ -64,5 +70,5 @@ for p in [p1, p2, p3, p4]:
 # Start the game
 info = room.start_new_game()
 
-print(f"Performance score: {info['performanceScore']}")
-print(f"Scores: {info['score']}")
+print(f"Performance score: {info['Game_Performance_Score']}")
+print(f"Scores: {info['Game_Score']}")

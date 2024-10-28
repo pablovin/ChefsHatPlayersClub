@@ -68,6 +68,16 @@ class AgentDQL(ChefsHatPlayer):
             log_directory=log_directory,
         )
 
+        if continueTraining:
+            assert (
+                log_directory != ""
+            ), "When training an agent, you have to define a log_directory!"
+
+            self.save_model = os.path.join(self.this_log_folder, "savedModel")
+
+            if not os.path.exists(self.save_model):
+                os.makedirs(self.save_model)
+
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
 
@@ -226,9 +236,9 @@ class AgentDQL(ChefsHatPlayer):
         ) = self.memory.sample_batch(self.batchSize)
 
         # Apply Bellman Equation on batch samples to train our DDQN
-        q = self.actor([s, possibleActions])
-        next_q = self.actor([new_s, newPossibleActions])
-        q_targ = self.targetNetwork([new_s, newPossibleActions])
+        q = self.actor([s, possibleActions]).numpy()
+        next_q = self.actor([new_s, newPossibleActions]).numpy()
+        q_targ = self.targetNetwork([new_s, newPossibleActions]).numpy()
 
         for i in range(s.shape[0]):
             old_q = q[i, a[i]]
@@ -321,12 +331,31 @@ class AgentDQL(ChefsHatPlayer):
         return numpy.array(a)
 
     def get_reward(self, info):
-        this_player = info["Author_Index"]
-        this_player_name = info["Player_Names"][this_player]
-        this_player_position = 3 - info["Match_Score"][this_player_name]
-        this_player_finished = info["Finished_Players"][this_player_name]
+        roles = {"Chef": 0, "Souschef": 1, "Waiter": 2, "Dishwasher": 3}
+        print(f"Player names: {info['Player_Names']} ")
+        print(f"Player roles: {info['Current_Roles']} ")
 
-        return self.reward.getReward(this_player_position, this_player_finished)
+        this_player_index = info["Player_Names"].index(self.name)
+        this_player_role = info["Current_Roles"][this_player_index]
+
+        try:
+            this_player_position = roles[this_player_role]
+        except:
+            this_player_position = 3
+
+        reward = self.reward.getReward(this_player_position, True)
+
+        # self.log(f"Player names: {this_player_index} - this player name: {self.name}")
+
+        # self.log(
+        #     f"this_player: {this_player_index} - Match_Score this player: {info['Match_Score']} - finished players: {info['Finished_Players']}"
+        # )
+        self.log(f"Finishing position: {this_player_role} - Reward: {reward} ")
+        # self.log(
+        #     f"REWARD: This player position: {this_player_position} - this player finished: {this_player_finished} - {reward}"
+        # )
+
+        return reward
 
     def update_my_action(self, info):
         if self.training:
@@ -336,8 +365,7 @@ class AgentDQL(ChefsHatPlayer):
             nextObservation = numpy.array(info["Observation_After"])
 
             this_player = info["Author_Index"]
-            this_player_name = info["Player_Names"][this_player]
-            done = info["Finished_Players"][this_player_name]
+            done = info["Finished_Players"][this_player]
 
             reward = self.get_reward(info)
 
@@ -367,14 +395,12 @@ class AgentDQL(ChefsHatPlayer):
                 self.updateModel(rounds, thisPlayer)
                 self.updateTargetNetwork()
 
-                if not self.saveModelIn == "":
-
-                    keras.models.save_model(
-                        self.critic,
-                        os.path.join(
-                            self.saveModelIn,
-                            "actor_Player" + str(self.name) + ".keras",
-                        ),
-                    )
+                keras.models.save_model(
+                    self.targetNetwork,
+                    os.path.join(
+                        self.save_model,
+                        "actor_Player" + str(self.name) + ".keras",
+                    ),
+                )
                 if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay

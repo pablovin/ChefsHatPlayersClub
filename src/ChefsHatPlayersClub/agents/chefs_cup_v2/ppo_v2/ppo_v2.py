@@ -342,9 +342,8 @@ class AgentPPOV2(ChefsHatPlayer):
 
     def get_reward(self, info):
         this_player = info["Author_Index"]
-        this_player_name = info["Player_Names"][this_player]
-        this_player_position = 3 - info["Match_Score"][this_player_name]
-        this_player_finished = info["Finished_Players"][this_player_name]
+        this_player_position = 3 - info["Match_Score"][this_player]
+        this_player_finished = info["Finished_Players"][this_player]
 
         return self.reward.getReward(this_player_position, this_player_finished)
 

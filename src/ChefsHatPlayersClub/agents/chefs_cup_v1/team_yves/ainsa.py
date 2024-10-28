@@ -470,8 +470,7 @@ class AINSA(ChefsHatPlayer):
     def get_reward(self, info):
         stateBefore = info["Observation_Before"]
         thisPlayer = info["Author_Index"]
-        this_player_name = info["Player_Names"][thisPlayer]
-        matchFinished = info["Finished_Players"][this_player_name]
+        matchFinished = info["Finished_Players"][thisPlayer]
 
         if matchFinished:
             if thisPlayer == 0:
@@ -487,29 +486,21 @@ class AINSA(ChefsHatPlayer):
         reward = self.rewardNetwork([rewardShape])[0][0]
 
         if self.beforeInfo is not None:
-            lastActionPlayers = self.beforeInfo["lastActionPlayers"]
-            actualActionPlayers = info["lastActionPlayers"]
+            lastActionPlayers = self.beforeInfo["Last_action_Per_Player"]
+            actualActionPlayers = info["Last_action_Per_Player"]
 
             count = 0
 
-            if len(lastActionPlayers[0]) > 0 and lastActionPlayers[0][0] == "DISCARD":
+            if lastActionPlayers[0] != "pass":
                 for x, i in enumerate(actualActionPlayers):
                     if x == 0:
                         continue
                     for val in actualActionPlayers[x]:
-                        if (
-                            len(actualActionPlayers[0]) > 0
-                            and actualActionPlayers[0][0] == "DISCARD"
-                            and val == "PASS"
-                        ):
+                        if actualActionPlayers[0] != "pass" and val == "pass":
                             reward += 0.5
                             count += 1
 
-            if (
-                len(lastActionPlayers[0]) > 0
-                and lastActionPlayers[0][0] != "PASS"
-                and count == 3
-            ):
+            if lastActionPlayers[0] != "pass" and count == 3:
                 return 1
 
         self.beforeInfo = info
@@ -535,8 +526,7 @@ class AINSA(ChefsHatPlayer):
         if self.training:
 
             thisPlayer = info["Author_Index"]
-            this_player_name = info["Player_Names"][thisPlayer]
-            done = info["Finished_Players"][this_player_name]
+            done = info["Finished_Players"][thisPlayer]
 
             action = info["Action_Index"]
             observation = numpy.array(info["Observation_Before"])

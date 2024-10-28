@@ -94,6 +94,7 @@ class AgentPPO(ChefsHatPlayer):
         verbose_log: bool = False,
         log_directory: str = "",
     ):
+
         super().__init__(
             self.suffix,
             agentType + "_" + name,
@@ -103,9 +104,15 @@ class AgentPPO(ChefsHatPlayer):
             log_directory=log_directory,
         )
 
+        if continueTraining:
+            assert (
+                log_directory != ""
+            ), "When training an agent, you have to define a log_directory!"
+
         self.training = continueTraining
         self.initialEpsilon = initialEpsilon
         self.loadNetwork = loadNetwork
+        self.save_model = os.path.join(self.this_log_folder, "savedModel")
 
         self.type = agentType
         self.reward = RewardOnlyWinning()
@@ -260,14 +267,19 @@ class AgentPPO(ChefsHatPlayer):
         self.actor = load_model(actorModel, custom_objects={"loss": loss})
         self.critic = load_model(criticModel, custom_objects={"loss": loss})
 
-        print(f"Load from: {actorModel}")
-        print(f"Load from: {criticModel}")
+        self.log(f"--------")
+        self.log(f"Loading actor from: {actorModel}")
+        self.log(f"Loading critic from: {criticModel}")
+        self.log(f"--------")
 
-    def updateModel(self, game, thisPlayer):
+    def updateModel(self, last_reward):
+
         state = numpy.array(self.states)
 
         action = self.actions
-        reward = numpy.array(self.rewards)
+        # reward = numpy.array(self.rewards)
+        reward = numpy.full(len(state), last_reward)
+
         possibleActions = numpy.array(self.possibleActions)
         realEncoding = numpy.array(self.realEncoding)
 
@@ -295,17 +307,11 @@ class AgentPPO(ChefsHatPlayer):
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-        self.log(
-            "-- "
-            + self.name
-            + ": Epsilon:"
-            + str(self.epsilon)
-            + " - ALoss:"
-            + str(actorLoss)
-            + " - "
-            + "CLoss: "
-            + str(criticLoss)
-        )
+        # self.log(f" -- Reward: {reward}")
+        self.log(f" -- Discounted reward: {discounted_rewards}")
+        self.log(f" -- Actor Loss: {actorLoss}")
+        self.log(f" -- Critic Loss: {criticLoss}")
+        self.log(f" -- Epsilon: {self.epsilon}")
 
     def resetMemory(self):
         self.states = []
@@ -324,12 +330,25 @@ class AgentPPO(ChefsHatPlayer):
         return True
 
     def get_reward(self, info):
-        this_player = info["Author_Index"]
-        this_player_name = info["Player_Names"][this_player]
-        this_player_position = 3 - info["Match_Score"][this_player_name]
-        this_player_finished = info["Finished_Players"][this_player_name]
+        # "Chef", "Souschef", "Dishwasher", "Waiter"
+        roles = {"Chef": 0, "Souschef": 1, "Waiter": 2, "Dishwasher": 3}
+        this_player_index = info["Player_Names"].index(self.name)
+        this_player_role = info["Current_Roles"][this_player_index]
+        this_player_position = roles[this_player_role]
 
-        return self.reward.getReward(this_player_position, this_player_finished)
+        reward = self.reward.getReward(this_player_position, True)
+
+        # self.log(f"Player names: {this_player_index} - this player name: {self.name}")
+
+        # self.log(
+        #     f"this_player: {this_player_index} - Match_Score this player: {info['Match_Score']} - finished players: {info['Finished_Players']}"
+        # )
+        self.log(f"Finishing position: {this_player_role} - Reward: {reward} ")
+        # self.log(
+        #     f"REWARD: This player position: {this_player_position} - this player finished: {this_player_finished} - {reward}"
+        # )
+
+        return reward
 
     def get_action(self, observations):
         stateVector = numpy.concatenate((observations[0:11], observations[11:28]))
@@ -368,45 +387,54 @@ class AgentPPO(ChefsHatPlayer):
 
     def update_end_match(self, info):
         if self.training:
-            rounds = info["Rounds"]
-            thisPlayer = info["Author_Index"]
-            self.updateModel(rounds, thisPlayer)
+            self.log(f"--------")
+            self.log(f"Match Over! Updating the Model!")
+            self.log(f"--------")
+            last_reward = self.get_reward(info)
+            self.updateModel(last_reward)
+            self.log(f"--------")
 
             # save model
-            if not self.saveModelIn == "":
-                keras.models.save_model(
-                    self.actor,
-                    os.path.join(
-                        self.saveModelIn,
-                        "actor_Player_" + str(self.name) + ".h5",
-                    ),
-                )
 
-                keras.models.save_model(
-                    self.critic,
-                    os.path.join(
-                        self.saveModelIn,
-                        "critic_Player_" + str(self.name) + ".h5",
-                    ),
-                )
+            self.log(f"--------")
+            self.log(f"Saving model here: {self.save_model}")
+            self.log(f"--------")
+
+            keras.models.save_model(
+                self.actor,
+                os.path.join(
+                    self.save_model,
+                    "actor_Player_" + str(self.name) + ".h5",
+                ),
+            )
+
+            keras.models.save_model(
+                self.critic,
+                os.path.join(
+                    self.save_model,
+                    "critic_Player_" + str(self.name) + ".h5",
+                ),
+            )
 
             self.resetMemory()
 
     def update_my_action(self, info):
         if self.training:
+
+            self.log(
+                f"---- Saving training data in agent memory! Total actions saved: {len(self.states)} ----"
+            )
             action_index = info["Action_Index"]
             observation = numpy.array(info["Observation_Before"])
-
-            reward = self.get_reward(info)
 
             state = numpy.concatenate((observation[0:11], observation[11:28]))
             possibleActions = observation[28:]
 
-            action = numpy.zeros(action.shape)
+            action = numpy.zeros(200)
             action[action_index] = 1
 
             self.states.append(state)
             self.actions.append(action)
-            self.rewards.append(reward)
+            # self.rewards.append(reward)
             self.possibleActions.append(possibleActions)
             self.realEncoding.append(action)

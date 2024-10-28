@@ -608,7 +608,7 @@ class AgentAIRL(ChefsHatPlayer):
             action = info["Action_Index"]
             observation = numpy.array(info["Observation_Before"])
             nextObservation = numpy.array(info["Observation_After"])
-            done = info["Finished_Players"][this_player_name]
+            done = info["Finished_Players"][this_player]
 
             reward = self.get_reward(info)
 
