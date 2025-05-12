@@ -8,6 +8,7 @@ from keras.optimizers import Adam
 import keras.backend as K
 from keras.models import load_model
 
+
 import random
 import numpy
 import copy
@@ -309,9 +310,9 @@ class AgentPPO(ChefsHatPlayer):
 
         # self.log(f" -- Reward: {reward}")
         self.log(f" -- Discounted reward: {discounted_rewards}")
-        self.log(f" -- Actor Loss: {actorLoss}")
-        self.log(f" -- Critic Loss: {criticLoss}")
-        self.log(f" -- Epsilon: {self.epsilon}")
+        self.log(f" -- Epsilon: {self.epsilon} - Actor Loss: {actorLoss} - Critic Loss: {criticLoss}")     
+        self.actorLoss = actorLoss
+        self.criticLoss = criticLoss
 
     def resetMemory(self):
         self.states = []
@@ -400,11 +401,12 @@ class AgentPPO(ChefsHatPlayer):
             self.log(f"Saving model here: {self.save_model}")
             self.log(f"--------")
 
+            os.makedirs(self.save_model, exist_ok=True)
             keras.models.save_model(
                 self.actor,
                 os.path.join(
                     self.save_model,
-                    "actor_Player_" + str(self.name) + ".h5",
+                    "actor_Player_" + str(self.name) + ".keras",
                 ),
             )
 
@@ -412,7 +414,7 @@ class AgentPPO(ChefsHatPlayer):
                 self.critic,
                 os.path.join(
                     self.save_model,
-                    "critic_Player_" + str(self.name) + ".h5",
+                    "critic_Player_" + str(self.name) + ".keras",
                 ),
             )
 
